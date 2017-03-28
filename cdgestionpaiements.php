@@ -73,6 +73,26 @@ class Cdgestionpaiements extends Module
         return true;
     }
 
+    private function createTableOrderEcheancier()
+    {
+        $sql = "  CREATE TABLE `"._DB_PREFIX_."_order_echeancier` (
+                  `id_order_echeancier` int(11) NOT NULL,
+                  `id_order` int(11) NOT NULL,
+                  `order_reference` int(11) NOT NULL,
+                  `payment_date` date NOT NULL,
+                  `payment_method` varchar(255) NOT NULL,
+                  `payment_transaction_id` varchar(20) NOT NULL,
+                  `payment_amount` decimal(10,2) NOT NULL,
+                  `valid` tinyint(1) NOT NULL DEFAULT '0'
+                ) ENGINE ='" ._MYSQL_ENGINE_ ."' DEFAULT CHARSET=utf8;";
+
+        if (!Db::getInstance()->execute($sql)) {
+            return false;
+        }
+
+        return true;
+    }
+
     private function installAdminController()
     {
         $tab = new Tab();
@@ -91,8 +111,7 @@ class Cdgestionpaiements extends Module
     {
         $id_tab = (int)Tab::getIdFromClassName('AdminGestionPaiements');
 
-        if ($id_tab)
-        {
+        if ($id_tab) {
             $tab = new Tab($id_tab);
             return (bool)$tab->delete();
         }
@@ -100,19 +119,18 @@ class Cdgestionpaiements extends Module
         return false;
     }
 
-
     public function getContent()
     {
-       $this->_html .= Tools::getValue('controller');
+        $this->_html .= Tools::getValue('controller');
         return $this->_html;
     }
 
     public function hookDisplayBackOfficeHeader($params)
     {
-        if ("AdminOrders" === Tools::getValue('controller')){
+        if ("AdminOrders" === Tools::getValue('controller')) {
             $this->smarty->assignGlobal("employeeIdProfile", $this->context->employee->id_profile);
             $this->context->controller->addCSS($this->_path . 'views/css/cdgestionpaiements.css');
-            $this->context->controller->addJS($this->_path .  'views/js/cdgestionpaiements.js');
+            $this->context->controller->addJS($this->_path . 'views/js/cdgestionpaiements.js');
         }
     }
 
