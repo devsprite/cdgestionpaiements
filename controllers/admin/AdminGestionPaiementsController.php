@@ -28,16 +28,63 @@ if (!defined('_PS_VERSION_')) {
 
 class AdminGestionPaiementsController extends ModuleAdminController
 {
+    private $orderInformations = array();
 
-    public function ajaxProcessUpdateNumberOfEcheance($id)
+    public function ajaxProcessGetOrderInformations()
     {
-        $reponse = array(
-            "numberOfEcheance" => 4,
-            "order" => 70000
-        );
+        $this->orderInformations['id_order'] = (int)Tools::getValue("id_order");
+        $this->getOrderInformations();
 
-        echo Tools::jsonEncode($reponse);
-        die();
+        die(Tools::jsonEncode($this->orderInformations));
+    }
+
+    private function getOrderInformations()
+    {
+        $order = new Order($this->orderInformations['id_order']);
+
+        $this->orderInformations['id_customer'] = (int)$order->id_customer;
+        $this->orderInformations['total_paid'] = round($order->total_paid, 2);
+        $this->orderInformations['orders_total_paid_tax_incl'] = round($order->total_paid_tax_incl, 2);
+        $this->orderInformations['order_reste_a_payer'] = $this->getResteAPayer($order);
+        $this->orderInformations['paymentsNumber'] = $this->getPaymentsNumber($order);
+        $this->orderInformations['numberEcheance'] = "Faire fonction";
+        $this->orderInformations['accompte'] = "Faire fonction";
+    }
+
+    public function ajaxProcessSetAccompte(){
+        $accompte = (float)Tools::getValue("accompte");
+        $id_order = (int)Tools::getValue("id_order");
+
+        if (empty($id_order)) {
+            die(Tools::jsonEncode(array("Error" => "id_order is empty")));
+        }
+
+        if ($accompte < 0) {
+            die(Tools::jsonEncode(array("Error" => "Accompte must be positive")));
+        }
+
+        // Todo mettre à jour ou créer l'order
+        die(Tools::jsonEncode(array("Success" => "Order ".$id_order." Accompte Updated : " . $accompte)));
+
+
+    }
+
+    private function getResteAPayer(Order $order)
+    {
+        return round($order->total_paid_tax_incl - $order->total_paid, 2);
+    }
+
+    /**
+     * Retourne le nombre de payments déjà éffectués
+     *
+     * @param Order $order
+     * @return int
+     */
+    private function getPaymentsNumber(Order $order)
+    {
+        $payments = $order->getOrderPayments();
+
+        return count($payments);
     }
 
 

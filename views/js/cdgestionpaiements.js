@@ -1,48 +1,106 @@
-$(document).ready(function() {
+$(document).ready(function () {
 
-    var nombreEcheances = $('#nombreEcheances');
-    var totalPaid = total_paid;
-    var ordersTotalPaidTaxIncl = orders_total_paid_tax_incl;
-    var resteAPayer = ordersTotalPaidTaxIncl - totalPaid;
-    var link = adminGestionPaiementsController + "&action=UpdateNumberOfEcheance&ajax=1";
+    var total_paid;
+    var orders_total_paid_tax_incl;
+    var order_reste_a_payer;
+    var paymentsNumber;
+    var numberEcheance;
+    var accompte;
 
-    console.info("nombreEcheances = " + nombreEcheances.val());
-    console.info("total_paid = " + total_paid);
-    console.info("orders_total_paid_tax_incl = " + orders_total_paid_tax_incl);
-    console.info("employeeIdProfile = " + employeeIdProfile);
+    var linkOrderInformations = adminGestionPaiementsController + "&action=GetOrderInformations&ajax=1";
+    var linkSetAccompte = adminGestionPaiementsController + "&action=SetAccompte&ajax=1";
+    var idOrder = id_order;
 
-    updateDisplay();
+    initEcheancier();
 
-    // Input select number of echeance
-    nombreEcheances.change(function(evt) {
-        var numberEcheance = evt.target.value;
-        console.info("Change nombreEcheances = " + numberEcheance);
-
+    $("#getOrderInformation").click(function () {
         $.ajax({
             type: "post",
-            url: link,
-            data: {},
-            success : function(data) {
-                console.log("success");
-            },
-            error : function() {
-                console.log("error");
+            url: linkOrderInformations,
+            dataType: "json",
+            data: {id_order: idOrder},
+            success: function(data) {
+                console.log(data);
             }
-
-
         });
-
-        updateDisplay();
     });
 
-    function updateDisplay() {
-        $("#totalAPayer").text(formatPrice(ordersTotalPaidTaxIncl));
-        $("#totalDejaPaye").text(formatPrice(totalPaid));
-        $("#resteAPayer").text(formatPrice(resteAPayer));
+    // Input select number of echeance
+    $('#nombreEcheances').change(function (evt) {
+        numberEcheance = evt.target.value;
+    });
+
+    $('#accompte').change(function (evt) {
+        accompte = formatNumber(evt.target.value);
+        evt.target.value = accompte;
+        setAccompte();
+    });
+
+    function setAccompte() {
+        $.ajax({
+            type: "post",
+            dataType: "json",
+            url: linkSetAccompte,
+            data: {
+                id_order: idOrder,
+                accompte: accompte
+            },
+            success: function (data) {
+                console.log(data);
+            },
+            error: function () {
+                console.log("Error setAccompte");
+            }
+        });
     }
 
-    function formatPrice(price){
+    function getOrderInformations() {
+        $.ajax({
+            type: "post",
+            dataType: "json",
+            url: linkOrderInformations,
+            data: {
+                id_order: idOrder,
+            },
+            success: function (data) {
+                console.log(data);
+                updateVariables(data);
+            },
+            error: function () {
+                console.log("Error getOrderInformations");
+            }
+        });
+    }
+
+    function updateVariables(data) {
+        orders_total_paid_tax_incl = data.orders_total_paid_tax_incl;
+        total_paid = data.total_paid;
+        order_reste_a_payer = data.order_reste_a_payer;
+        paymentsNumber = data.paymentsNumber;
+        numberEcheance = data.numberEcheance;
+        accompte = data.accompte;
+
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        $("#totalAPayer").text(formatPrice(orders_total_paid_tax_incl));
+        $("#totalDejaPaye").text(formatPrice(total_paid));
+        $("#resteAPayer").text(formatPrice(order_reste_a_payer));
+        // Todo mettre à jour le champ select du nombre d'accompte
+    }
+
+    function formatPrice(price) {
         return new Intl.NumberFormat("fr-FR", {style: "currency", currency: "EUR"}).format(price);
+    }
+
+    function formatNumber(number) {
+        var result = parseFloat(Math.abs(number));
+        return result.toFixed(2);
+    }
+
+    function initEcheancier() {
+        getOrderInformations();
     }
 
 });
