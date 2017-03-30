@@ -53,8 +53,11 @@ class Cdgestionpaiements extends Module
     public function install()
     {
         if (!parent::install() OR
+            !$this->registerHook('DisplayBackOfficeHeader') OR
             !$this->installAdminController() OR
-            !$this->registerHook('DisplayBackOfficeHeader')
+            !$this->createTableOrderGestionPayment() OR
+            !$this->createTableOrderGestionEcheance() OR
+            !$this->createTableOrderGestionPaymentPaybox()
         ) {
             return false;
         }
@@ -65,7 +68,8 @@ class Cdgestionpaiements extends Module
     public function uninstall()
     {
         if (!parent::uninstall() OR
-            !$this->uninstallAdminController()
+            !$this->uninstallAdminController() OR
+            !$this->removeTables()
         ) {
             return false;
         }
@@ -73,23 +77,70 @@ class Cdgestionpaiements extends Module
         return true;
     }
 
-    private function createTableOrderEcheancier()
+    private function createTableOrderGestionPayment()
     {
-        $sql = "  CREATE TABLE `"._DB_PREFIX_."_order_echeancier` (
-                  `id_order_echeancier` int(11) NOT NULL,
-                  `id_order` int(11) NOT NULL,
-                  `order_reference` int(11) NOT NULL,
-                  `payment_date` date NOT NULL,
-                  `payment_method` varchar(255) NOT NULL,
-                  `payment_transaction_id` varchar(20) NOT NULL,
-                  `payment_amount` decimal(10,2) NOT NULL,
-                  `valid` tinyint(1) NOT NULL DEFAULT '0'
-                ) ENGINE ='" ._MYSQL_ENGINE_ ."' DEFAULT CHARSET=utf8;";
+        $sql = "CREATE TABLE `" . _DB_PREFIX_ . "order_gestion_payment` (
+                `id_order_gestion_payment` INT NOT NULL AUTO_INCREMENT ,
+                `id_order` INT NOT NULL ,
+                `number_echeance` INT NOT NULL DEFAULT '0',
+                `accompte` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
+                PRIMARY KEY (`id_order_gestion_payment`)) 
+                ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
+        if (!Db::getInstance()->execute($sql)) {
+            return false;
+        }
+        return true;
+    }
 
+    private function createTableOrderGestionEcheance()
+    {
+        $sql = "CREATE TABLE `" . _DB_PREFIX_ . "order_gestion_echeancier` (
+                 `id_order_gestion_echeancier` INT NOT NULL AUTO_INCREMENT ,
+                 `id_order_gestion_payment` INT NOT NULL ,
+                 `payment_date` DATE NOT NULL DEFAULT '0000-00-00' ,
+                 `payment_method` VARCHAR(255) NOT NULL ,
+                 `payment_transaction_id` INT NOT NULL DEFAULT '0' ,
+                 `payment_amount` DECIMAL(10,2) NOT NULL DEFAULT '0.00' ,
+                 `payed` TINYINT NOT NULL DEFAULT '0' ,
+                 `id_employee` INT NOT NULL DEFAULT '0' ,
+                 PRIMARY KEY (`id_order_gestion_echeancier`)) 
+                 ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
         if (!Db::getInstance()->execute($sql)) {
             return false;
         }
 
+        return true;
+    }
+
+    private function createTableOrderGestionPaymentPaybox()
+    {
+        $sql = "CREATE TABLE `" . _DB_PREFIX_ . "order_gestion_payment_paybox` (
+                `id_order_gestion_payment_paybox` INT NOT NULL AUTO_INCREMENT ,
+                `id_order` INT NOT NULL ,
+                `id_order_gestion_echeancier` INT NOT NULL DEFAULT '0' ,
+                `id_order_payment` INT NOT NULL DEFAULT '0' ,
+                `transaction_id` INT NOT NULL DEFAULT '0' ,
+                `date_of_issue` DATE NOT NULL DEFAULT '0000-00-00' ,
+                `reference` VARCHAR(255) NOT NULL DEFAULT '' ,
+                `amount` BIGINT NOT NULL DEFAULT '0' ,
+                `status` VARCHAR(255) NOT NULL DEFAULT '' ,
+                `checked` TINYINT NOT NULL DEFAULT '0' ,
+                PRIMARY KEY (`id_order_gestion_payment_paybox`)) 
+                ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
+        if (!Db::getInstance()->execute($sql)) {
+            return false;
+        }
+        return true;
+    }
+
+    private function removeTables()
+    {
+        $sql = "DROP TABLE IF EXISTS `" . _DB_PREFIX_ . "order_gestion_payment`,
+                `" . _DB_PREFIX_ . "order_gestion_echeancier`,
+                `" . _DB_PREFIX_ . "order_gestion_payment_paybox`;";
+        if (!DB::getInstance()->execute($sql)) {
+            return false;
+        }
         return true;
     }
 
@@ -125,7 +176,7 @@ class Cdgestionpaiements extends Module
         return $this->_html;
     }
 
-    public function hookDisplayBackOfficeHeader($params)
+    public function hookDisplayBackOfficeHeader()
     {
         if ("AdminOrders" === Tools::getValue('controller')) {
             $this->smarty->assignGlobal("employeeIdProfile", $this->context->employee->id_profile);

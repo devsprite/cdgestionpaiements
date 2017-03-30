@@ -26,6 +26,10 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once __DIR__ . "/../../classes/models/OrderGestionPayment.php";
+require_once __DIR__ . "/../../classes/models/OrderGestionEcheancier.php";
+require_once __DIR__ . "/../../classes/models/OrderGestionPaymentPaybox.php";
+
 class AdminGestionPaiementsController extends ModuleAdminController
 {
     private $orderInformations = array();
