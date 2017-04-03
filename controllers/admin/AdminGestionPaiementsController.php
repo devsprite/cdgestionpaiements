@@ -27,12 +27,17 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once __DIR__ . "/../../classes/models/OrderGestionPayment.php";
+require_once __DIR__ . "/../../classes/managers/OrderGestionPaymentManager.php";
+
 require_once __DIR__ . "/../../classes/models/OrderGestionEcheancier.php";
 require_once __DIR__ . "/../../classes/models/OrderGestionPaymentPaybox.php";
 
 class AdminGestionPaiementsController extends ModuleAdminController
 {
+    const CDGESTION_ACCOMPTE_MINI = 20;
+
     private $orderInformations = array();
+
 
     public function ajaxProcessGetOrderInformations()
     {
@@ -45,33 +50,72 @@ class AdminGestionPaiementsController extends ModuleAdminController
     private function getOrderInformations()
     {
         $order = new Order($this->orderInformations['id_order']);
+        $orderGestionPaymentManager = new OrderGestionPaymentManager();
 
         $this->orderInformations['id_customer'] = (int)$order->id_customer;
         $this->orderInformations['total_paid'] = round($order->total_paid, 2);
         $this->orderInformations['orders_total_paid_tax_incl'] = round($order->total_paid_tax_incl, 2);
         $this->orderInformations['order_reste_a_payer'] = $this->getResteAPayer($order);
         $this->orderInformations['paymentsNumber'] = $this->getPaymentsNumber($order);
-        $this->orderInformations['numberEcheance'] = "Faire fonction";
-        $this->orderInformations['accompte'] = "Faire fonction";
+        $this->orderInformations['numberEcheance'] = (int)$orderGestionPaymentManager->getNumberEcheanceByOrder($this->orderInformations['id_order']);
+        $this->orderInformations['accompte'] = (float)$orderGestionPaymentManager->getAccompteByOrder($this->orderInformations['id_order']);
     }
 
-    public function ajaxProcessSetAccompte(){
+    /**
+     * Update Accompte value
+     */
+    public function ajaxProcessUpdateAccompte(){
         $accompte = (float)Tools::getValue("accompte");
         $id_order = (int)Tools::getValue("id_order");
 
         if (empty($id_order)) {
-            die(Tools::jsonEncode(array("Error" => "id_order is empty")));
+            die(Tools::jsonEncode(array("message" => "id_order is empty", "error" => true)));
         }
 
-        if ($accompte < 0) {
-            die(Tools::jsonEncode(array("Error" => "Accompte must be positive")));
+        if ($accompte < self::CDGESTION_ACCOMPTE_MINI) {
+            die(Tools::jsonEncode(array("message" => "Accompte must be positive", "error" => true)));
         }
 
-        // Todo mettre à jour ou créer l'order
-        die(Tools::jsonEncode(array("Success" => "Order ".$id_order." Accompte Updated : " . $accompte)));
+        $OrderGestionPaymentManager = new OrderGestionPaymentManager();
+        $isOk = $OrderGestionPaymentManager->updateAccompte($id_order, $accompte);
 
+        if ($isOk) {
+            die(Tools::jsonEncode(array("message" => "Update accompte success. Order ".$id_order." Accompte : " . $accompte, "error" => false)));
+        } else {
+            die(Tools::jsonEncode(array("message" => "Update accompte error. Order ".$id_order." Accompte : " . $accompte, "error" => false)));
+        }
+    }
+
+    /**
+     * Update Echeance value
+     */
+    public function ajaxProcessUpdateEcheance(){
+        $id_order = (int)Tools::getValue("id_order");
+        $number_echeance = (int)Tools::getValue("number_echeance");
+
+        if (empty($id_order)) {
+            die(Tools::jsonEncode(array("message" => "id_order is empty", "error" => true)));
+        }
+
+        $numberEcheanceMini = 4; // Todo faire fonction de vérification du nombre mini d'echeance disponible
+
+        if ($number_echeance < $numberEcheanceMini) {
+            die(Tools::jsonEncode(array("message" => "Nombre d'échéances mini : " . $numberEcheanceMini, "error" => true)));
+        }
+
+        $OrderGestionPaymentManager = new OrderGestionPaymentManager();
+        $isOk = $OrderGestionPaymentManager->updateEcheance($id_order, $number_echeance);
+
+        if ($isOk) {
+            die(Tools::jsonEncode(array("message" => "Update échéance success. Order : ".$id_order." Echéance : " . $number_echeance, "error" => false)));
+        } else {
+            die(Tools::jsonEncode(array("message" => "Update échéance error. Order : ".$id_order." Echéance : " . $number_echeance, "error" => false)));
+        }
 
     }
+
+
+
 
     private function getResteAPayer(Order $order)
     {
