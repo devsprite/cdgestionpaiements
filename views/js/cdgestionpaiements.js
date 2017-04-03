@@ -6,6 +6,7 @@ $(document).ready(function () {
     var paymentsNumber;
     var numberEcheance;
     var accompte;
+    var loader = $(".loader");
 
     var linkOrderInformations = adminGestionPaiementsController + "&action=GetOrderInformations&ajax=1";
     var linkSetAccompte = adminGestionPaiementsController + "&action=SetAccompte&ajax=1";
@@ -14,13 +15,18 @@ $(document).ready(function () {
     initEcheancier();
 
     $("#getOrderInformation").click(function () {
+        loader.toggle(true);
         $.ajax({
             type: "post",
             url: linkOrderInformations,
             dataType: "json",
             data: {id_order: idOrder},
             success: function(data) {
+                loader.toggle(false);
                 console.log(data);
+            },
+            error: function(){
+                loader.toggle(false);
             }
         });
     });
@@ -37,6 +43,7 @@ $(document).ready(function () {
     });
 
     function setAccompte() {
+        loader.toggle(true);
         $.ajax({
             type: "post",
             dataType: "json",
@@ -47,14 +54,17 @@ $(document).ready(function () {
             },
             success: function (data) {
                 console.log(data);
+                loader.toggle(false);
             },
             error: function () {
                 console.log("Error setAccompte");
+                loader.toggle(false);
             }
         });
     }
 
     function getOrderInformations() {
+        loader.toggle(true);
         $.ajax({
             type: "post",
             dataType: "json",
@@ -65,9 +75,11 @@ $(document).ready(function () {
             success: function (data) {
                 console.log(data);
                 updateVariables(data);
+                loader.toggle(false);
             },
             error: function () {
                 console.log("Error getOrderInformations");
+                loader.toggle(false);
             }
         });
     }

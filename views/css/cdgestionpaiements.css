@@ -1,0 +1,27 @@
+.loader {
+    display:none;
+    position: absolute;
+    z-index: 500;
+    top: 30%;
+    left: 47%;
+    border: 8px solid rgba(255,255,255,0);
+    border-top: 8px solid #D3EAC1; /* Green */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loader-background {
+    z-index: 499;
+    background-color: rgba(100, 100, 100, 0.5);
+}
