@@ -4,17 +4,28 @@ $(document).ready(function () {
     var orders_total_paid_tax_incl;
     var order_reste_a_payer;
     var paymentsNumber;
-    var numberEcheance;
-    var numberEcheanceMini;
+    var numberEcheancesTotal;
+    var numberEcheancesMini;
+    var numberEcheancesMax;
     var accompte;
     var accompteMini = 20;
     var loader = $(".loader");
     var divErrors = $("#cdgestion-errors");
     var pErrors = $("#cdgestion-errors-message");
-    var linkOrderInformations = adminGestionPaiementsController + "&action=GetOrderInformations&ajax=1";
-    var linkUpdateAccompte = adminGestionPaiementsController + "&action=UpdateAccompte&ajax=1";
-    var linkUpdateNbrEcheance = adminGestionPaiementsController + "&action=UpdateEcheance&ajax=1";
-    var idOrder = id_order;
+
+    var linkOrderInformations;
+    var linkUpdateAccompte;
+    var linkUpdateNbrEcheance;
+    if (typeof adminGestionPaiementsController !== 'undefined') {
+        linkOrderInformations = adminGestionPaiementsController + "&action=GetOrderInformations&ajax=1";
+        linkUpdateAccompte = adminGestionPaiementsController + "&action=UpdateAccompte&ajax=1";
+        linkUpdateNbrEcheance = adminGestionPaiementsController + "&action=UpdateEcheance&ajax=1";
+    }
+
+    var idOrder;
+    if (typeof id_order !== 'undefined') {
+        idOrder = id_order;
+    }
 
     initEcheancier();
 
@@ -39,9 +50,9 @@ $(document).ready(function () {
 
     $('#nombreEcheances').change(function (evt) {
         numberEcheanceMin();
-        numberEcheance = parseInt(evt.target.value);
-        if (numberEcheance < numberEcheanceMini) {
-            pErrors.text("Nombre d'échéance mini : " + numberEcheanceMini);
+        numberEcheancesTotal = parseInt(evt.target.value);
+        if (numberEcheancesTotal < numberEcheancesMini) {
+            pErrors.text("Nombre d'échéance mini : " + numberEcheancesMini);
             divErrors.toggle(true);
         } else {
             updateNombreEcheance();
@@ -57,15 +68,15 @@ $(document).ready(function () {
             dataType: "json",
             data: {
                 id_order: idOrder,
-                number_echeance: numberEcheance
+                number_echeance: numberEcheancesTotal
             },
-            success: function(data){
+            success: function (data) {
                 console.log(data);
                 loader.toggle(false);
                 pErrors.text(data.message);
                 divErrors.toggle(data.error);
             },
-            error: function(data){
+            error: function (data) {
                 console.log(data);
                 loader.toggle(false);
             }
@@ -74,8 +85,8 @@ $(document).ready(function () {
 
     function numberEcheanceMin() {
         // TODO Faire le controle du nombre d'echeance mini disponible
-        numberEcheanceMini = 3;
-        return numberEcheanceMini;
+        numberEcheancesMini = 3;
+        return numberEcheancesMini;
     }
 
 
@@ -83,14 +94,15 @@ $(document).ready(function () {
 
     $('#accompte').change(function (evt) {
         accompte = formatNumber(evt.target.value);
-        if (accompte < accompteMini) {
-            accompte = 0;
-            pErrors.text("Accompte Mini : " + accompteMini + " €");
+        console.log(accompte);
+        if (accompte == "0.00") {
+            updateAccompte();
+        } else if ((accompte > order_reste_a_payer) || (accompte < accompteMini)) {
+            pErrors.text("l'accompte doit être compris entre " + accompteMini + " € et " + order_reste_a_payer + " €");
             divErrors.toggle(true);
         } else {
             updateAccompte();
         }
-        evt.target.value = accompte;
     });
 
     function updateAccompte() {
@@ -145,7 +157,9 @@ $(document).ready(function () {
         total_paid_real = data.total_paid_real;
         order_reste_a_payer = data.order_reste_a_payer;
         paymentsNumber = data.paymentsNumber;
-        numberEcheance = data.numberEcheance;
+        numberEcheancesTotal = data.numberEcheancesTotal;
+        numberEcheancesMini = data.numberEcheancesMini;
+        numberEcheancesMax = data.numberEcheancesMax;
         accompte = data.accompte;
 
         updateDisplay();
@@ -156,7 +170,30 @@ $(document).ready(function () {
         $("#totalDejaPaye").text(formatPrice(total_paid_real));
         $("#resteAPayer").text(formatPrice(order_reste_a_payer));
         $("#accompte").val(accompte);
-        $("#nombreEcheances").val(numberEcheance);
+        initSelectNumberEcheance();
+        initAccompte();
+        displayInputs();
+    }
+
+    function initAccompte() {
+        if (numberEcheancesMini >= 1) {
+            $(".gestion-accompte").toggle(false);
+        }
+    }
+
+    function initSelectNumberEcheance() {
+        for (var i = numberEcheancesMini; i <= numberEcheancesMax; i++) {
+            $("#nombreEcheances").append($('<option>', {
+                value: i,
+                text: i
+            }));
+        }
+    }
+
+    function displayInputs() {
+        if (order_reste_a_payer <= 0) {
+            $(".gestion-inputs").toggle(false);
+        }
     }
 
     function formatPrice(price) {

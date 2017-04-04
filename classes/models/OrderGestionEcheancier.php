@@ -38,7 +38,8 @@ class OrderGestionEcheancier extends ObjectModel
                 FROM `" . _DB_PREFIX_ . "order_gestion_payment` as ogp
                 LEFT JOIN `" . _DB_PREFIX_ . "order_gestion_echeancier` as oge
                 ON ogp.id_order_gestion_payment = oge.id_order_gestion_payment
-                WHERE oge.payed = 0";
+                WHERE ogp.id_order = " . (int)$id_order . "
+                AND oge.payed = 0";
 
         $req = Db::getInstance()->getValue($sql);
 

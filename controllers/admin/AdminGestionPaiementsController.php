@@ -79,8 +79,11 @@ class AdminGestionPaiementsController extends ModuleAdminController
             die(Tools::jsonEncode(array("message" => "id_order is empty", "error" => true)));
         }
 
-        if ($accompte < self::CDGESTION_ACCOMPTE_MINI) {
-            die(Tools::jsonEncode(array("message" => "Accompte must be positive", "error" => true)));
+        $order = new Order($id_order);
+        $orderResteAPayer = $order->total_paid_tax_incl - $order->total_paid_real;
+
+        if ( ($accompte != 0) && (($accompte < self::CDGESTION_ACCOMPTE_MINI) || ($accompte > $orderResteAPayer))) {
+            die(Tools::jsonEncode(array("message" => $accompte . "L'accompte doit être compris entre " . self::CDGESTION_ACCOMPTE_MINI . " € et " . $orderResteAPayer . "€", "error" => true)));
         }
 
         $OrderGestionPaymentManager = new OrderGestionPaymentManager();

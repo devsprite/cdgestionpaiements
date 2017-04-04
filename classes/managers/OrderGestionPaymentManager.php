@@ -78,7 +78,7 @@ class OrderGestionPaymentManager
             return $echeancesPayed;
         }
 
-        return $echeancesPayed + 1;
+        return $echeancesPayed;
     }
 
     /**
@@ -99,13 +99,15 @@ class OrderGestionPaymentManager
      */
     public function getNumberEcheancesMax($id_order)
     {
-        $numberEcheancesMini = $this->getNumberEcheancesMini($id_order);
+        $echeancesMini = $this->getNumberEcheancesMini($id_order);
+        $order = new Order($id_order);
+        $needToPaid = $order->total_paid_tax_incl - $order->total_paid_real;
 
-        if ($numberEcheancesMini == 0) {
-            return $this->getNumberEcheancesPayed($id_order);
+        if ($needToPaid <= 0) {
+            return $echeancesMini;
         }
 
-        return $numberEcheancesMini + 10;
+        return $echeancesMini + 10;
     }
 
 
