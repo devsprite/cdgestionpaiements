@@ -52,7 +52,7 @@ class OrderGestionPaymentManager
         return $order->accompte;
     }
 
-    public function getNumberEcheanceByOrder($id_order)
+    public function getNumberEcheancesTotalByOrder($id_order)
     {
         $orderGestionPayment = new OrderGestionPayment();
         $order = $orderGestionPayment->getOrderGestionPaymentByIdOrder((int)$id_order);
@@ -63,6 +63,52 @@ class OrderGestionPaymentManager
 
         return $order->number_echeance;
     }
+
+    /**
+     * @param $id_order
+     * @return int
+     */
+    public function getNumberEcheancesMini($id_order)
+    {
+        $echeancesPayed = $this->getNumberEcheancesPayed($id_order);
+        $order = new Order($id_order);
+        $needToPaid = $order->total_paid_tax_incl - $order->total_paid_real;
+
+        if ($needToPaid <= 0) {
+            return $echeancesPayed;
+        }
+
+        return $echeancesPayed + 1;
+    }
+
+    /**
+     * @param $id_order
+     * @return int
+     */
+    public function getNumberEcheancesPayed($id_order)
+    {
+        $order = new Order($id_order);
+        $payments = $order->getOrderPayments();
+
+        return count($payments);
+    }
+
+    /**
+     * @param $id_order
+     * @return int
+     */
+    public function getNumberEcheancesMax($id_order)
+    {
+        $numberEcheancesMini = $this->getNumberEcheancesMini($id_order);
+
+        if ($numberEcheancesMini == 0) {
+            return $this->getNumberEcheancesPayed($id_order);
+        }
+
+        return $numberEcheancesMini + 10;
+    }
+
+
 
 
 }

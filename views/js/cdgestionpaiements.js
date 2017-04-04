@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    var total_paid;
+    var total_paid_real;
     var orders_total_paid_tax_incl;
     var order_reste_a_payer;
     var paymentsNumber;
@@ -126,7 +126,7 @@ $(document).ready(function () {
             dataType: "json",
             url: linkOrderInformations,
             data: {
-                id_order: idOrder,
+                id_order: idOrder
             },
             success: function (data) {
                 console.log(data);
@@ -142,7 +142,7 @@ $(document).ready(function () {
 
     function updateVariables(data) {
         orders_total_paid_tax_incl = data.orders_total_paid_tax_incl;
-        total_paid = data.total_paid;
+        total_paid_real = data.total_paid_real;
         order_reste_a_payer = data.order_reste_a_payer;
         paymentsNumber = data.paymentsNumber;
         numberEcheance = data.numberEcheance;
@@ -153,7 +153,7 @@ $(document).ready(function () {
 
     function updateDisplay() {
         $("#totalAPayer").text(formatPrice(orders_total_paid_tax_incl));
-        $("#totalDejaPaye").text(formatPrice(total_paid));
+        $("#totalDejaPaye").text(formatPrice(total_paid_real));
         $("#resteAPayer").text(formatPrice(order_reste_a_payer));
         $("#accompte").val(accompte);
         $("#nombreEcheances").val(numberEcheance);

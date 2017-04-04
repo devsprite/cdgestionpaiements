@@ -30,6 +30,8 @@ require_once __DIR__ . "/../../classes/models/OrderGestionPayment.php";
 require_once __DIR__ . "/../../classes/managers/OrderGestionPaymentManager.php";
 
 require_once __DIR__ . "/../../classes/models/OrderGestionEcheancier.php";
+require_once __DIR__ . "/../../classes/managers/OrderGestionEcheancierManager.php";
+
 require_once __DIR__ . "/../../classes/models/OrderGestionPaymentPaybox.php";
 
 class AdminGestionPaiementsController extends ModuleAdminController
@@ -51,14 +53,19 @@ class AdminGestionPaiementsController extends ModuleAdminController
     {
         $order = new Order($this->orderInformations['id_order']);
         $orderGestionPaymentManager = new OrderGestionPaymentManager();
+        $orderGestionEcheancierManager = new OrderGestionEcheancierManager();
 
         $this->orderInformations['id_customer'] = (int)$order->id_customer;
-        $this->orderInformations['total_paid'] = round($order->total_paid, 2);
+        $this->orderInformations['total_paid_real'] = round($order->total_paid_real, 2);
         $this->orderInformations['orders_total_paid_tax_incl'] = round($order->total_paid_tax_incl, 2);
         $this->orderInformations['order_reste_a_payer'] = $this->getResteAPayer($order);
         $this->orderInformations['paymentsNumber'] = $this->getPaymentsNumber($order);
-        $this->orderInformations['numberEcheance'] = (int)$orderGestionPaymentManager->getNumberEcheanceByOrder($this->orderInformations['id_order']);
         $this->orderInformations['accompte'] = (float)$orderGestionPaymentManager->getAccompteByOrder($this->orderInformations['id_order']);
+        $this->orderInformations['numberEcheancesTotal'] = (int)$orderGestionPaymentManager->getNumberEcheancesTotalByOrder($this->orderInformations['id_order']);
+        $this->orderInformations['numberEcheancesPayed'] = (int)$orderGestionPaymentManager->getNumberEcheancesPayed($this->orderInformations['id_order']);
+        $this->orderInformations['numberEcheancesAVenir'] = (int)$orderGestionEcheancierManager->getNumberEcheancesAVenir($this->orderInformations['id_order']);
+        $this->orderInformations['numberEcheancesMini'] = (int)$orderGestionPaymentManager->getNumberEcheancesMini($this->orderInformations['id_order']);
+        $this->orderInformations['numberEcheancesMax'] = (int)$orderGestionPaymentManager->getNumberEcheancesMax($this->orderInformations['id_order']);
     }
 
     /**
@@ -93,18 +100,20 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $id_order = (int)Tools::getValue("id_order");
         $number_echeance = (int)Tools::getValue("number_echeance");
 
-        if (empty($id_order)) {
-            die(Tools::jsonEncode(array("message" => "id_order is empty", "error" => true)));
+        $order = new Order((int)$id_order);
+        if (null === $order) {
+            die(Tools::jsonEncode(array("message" => "La commande n'existe pas", "error" => true)));
         }
 
-        $numberEcheanceMini = 4; // Todo faire fonction de vérification du nombre mini d'echeance disponible
+        $orderGestionPaymentManager = new OrderGestionPaymentManager();
+        $numberEcheanceMini = $orderGestionPaymentManager->getNumberEcheancesMini($id_order);
 
         if ($number_echeance < $numberEcheanceMini) {
             die(Tools::jsonEncode(array("message" => "Nombre d'échéances mini : " . $numberEcheanceMini, "error" => true)));
         }
 
-        $OrderGestionPaymentManager = new OrderGestionPaymentManager();
-        $isOk = $OrderGestionPaymentManager->updateEcheance($id_order, $number_echeance);
+
+        $isOk = $orderGestionPaymentManager->updateEcheance($id_order, $number_echeance);
 
         if ($isOk) {
             die(Tools::jsonEncode(array("message" => "Update échéance success. Order : ".$id_order." Echéance : " . $number_echeance, "error" => false)));
@@ -119,7 +128,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
     private function getResteAPayer(Order $order)
     {
-        return round($order->total_paid_tax_incl - $order->total_paid, 2);
+        return round($order->total_paid_tax_incl - $order->total_paid_real, 2);
     }
 
     /**
