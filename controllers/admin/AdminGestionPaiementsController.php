@@ -37,6 +37,7 @@ require_once __DIR__ . "/../../classes/models/OrderGestionPaymentPaybox.php";
 class AdminGestionPaiementsController extends ModuleAdminController
 {
     const CDGESTION_ACCOMPTE_MINI = 20;
+    const CDGESTION_NUMBER_ECHEANCE_DEFAULT = 4;
 
     private $orderInformations = array();
 
@@ -61,11 +62,13 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $this->orderInformations['order_reste_a_payer'] = $this->getResteAPayer($order);
         $this->orderInformations['paymentsNumber'] = $this->getPaymentsNumber($order);
         $this->orderInformations['accompte'] = (float)$orderGestionPaymentManager->getAccompteByOrder($this->orderInformations['id_order']);
+        $this->orderInformations['accompteMini'] = self::CDGESTION_ACCOMPTE_MINI;
         $this->orderInformations['numberEcheancesTotal'] = (int)$orderGestionPaymentManager->getNumberEcheancesTotalByOrder($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesPayed'] = (int)$orderGestionPaymentManager->getNumberEcheancesPayed($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesAVenir'] = (int)$orderGestionEcheancierManager->getNumberEcheancesAVenir($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesMini'] = (int)$orderGestionPaymentManager->getNumberEcheancesMini($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesMax'] = (int)$orderGestionPaymentManager->getNumberEcheancesMax($this->orderInformations['id_order']);
+
     }
 
     /**

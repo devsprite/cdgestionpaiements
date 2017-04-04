@@ -8,7 +8,7 @@ $(document).ready(function () {
     var numberEcheancesMini;
     var numberEcheancesMax;
     var accompte;
-    var accompteMini = 20;
+    var accompteMini;
     var loader = $(".loader");
     var divErrors = $("#cdgestion-errors");
     var pErrors = $("#cdgestion-errors-message");
@@ -26,6 +26,13 @@ $(document).ready(function () {
     if (typeof id_order !== 'undefined') {
         idOrder = id_order;
     }
+
+    var rendered = Mustache.render(templatePayment, {name: "Luke"});
+    $("#cdgestionEcheancier").html(rendered);
+
+
+
+    console.log(html);
 
     initEcheancier();
 
@@ -49,7 +56,6 @@ $(document).ready(function () {
     // Update nombre d'echeance //
 
     $('#nombreEcheances').change(function (evt) {
-        numberEcheanceMin();
         numberEcheancesTotal = parseInt(evt.target.value);
         if (numberEcheancesTotal < numberEcheancesMini) {
             pErrors.text("Nombre d'échéance mini : " + numberEcheancesMini);
@@ -82,13 +88,6 @@ $(document).ready(function () {
             }
         });
     }
-
-    function numberEcheanceMin() {
-        // TODO Faire le controle du nombre d'echeance mini disponible
-        numberEcheancesMini = 3;
-        return numberEcheancesMini;
-    }
-
 
     // Update Accompte //
 
@@ -161,6 +160,7 @@ $(document).ready(function () {
         numberEcheancesMini = data.numberEcheancesMini;
         numberEcheancesMax = data.numberEcheancesMax;
         accompte = data.accompte;
+        accompteMini = data.accompteMini;
 
         updateDisplay();
     }

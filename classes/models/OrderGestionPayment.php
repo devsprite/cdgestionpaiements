@@ -46,7 +46,7 @@ class OrderGestionPayment extends ObjectModel
         $req = Db::getInstance()->getRow($sql);
 
         if (!$req) {
-            return null;
+            return AdminGestionPaiementsController::CDGESTION_NUMBER_ECHEANCE_DEFAULT;
         }
 
         return new OrderGestionPayment($req);

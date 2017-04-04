@@ -58,7 +58,7 @@ class OrderGestionPaymentManager
         $order = $orderGestionPayment->getOrderGestionPaymentByIdOrder((int)$id_order);
 
         if (null === $order) {
-            return null;
+            return 4;
         }
 
         return $order->number_echeance;

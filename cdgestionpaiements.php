@@ -179,8 +179,10 @@ class Cdgestionpaiements extends Module
     public function hookDisplayBackOfficeHeader()
     {
         if ("AdminOrders" === Tools::getValue('controller')) {
-            $this->smarty->assignGlobal("employeeIdProfile", $this->context->employee->id_profile);
             $this->context->controller->addCSS($this->_path . 'views/css/cdgestionpaiements.css');
+            $this->context->controller->addJquery();
+            $this->context->controller->addJS($this->_path . 'views/js/mustache.js');
+            $this->context->controller->addJS($this->_path . 'views/js/templatePayment.js');
             $this->context->controller->addJS($this->_path . 'views/js/cdgestionpaiements.js');
         }
     }
