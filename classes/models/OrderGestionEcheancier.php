@@ -53,7 +53,8 @@ class OrderGestionEcheancier extends ObjectModel
                 LEFT JOIN `"._DB_PREFIX_."order_gestion_echeancier` as ogpe 
                 ON ogp.id_order_gestion_payment = ogpe.id_order_gestion_payment 
                 WHERE ogp.id_order = ".(int)$id_order."
-                AND ogpe.payed = 0";
+                AND ogpe.payed = 0
+                ORDER BY ogpe.payment_date ASC";
 
         $req = Db::getInstance()->executeS($sql);
 

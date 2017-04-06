@@ -41,13 +41,9 @@ class OrderGestionPayment extends ObjectModel
 
     public function getOrderGestionPaymentByIdOrder($id_order)
     {
-        $sql = "SELECT * FROM `" . _DB_PREFIX_ . "order_gestion_payment`
+        $sql = "SELECT id_order_gestion_payment FROM `" . _DB_PREFIX_ . "order_gestion_payment`
                 WHERE id_order = " . (int)$id_order;
-        $req = Db::getInstance()->getRow($sql);
-
-        if (!$req) {
-            return AdminGestionPaiementsController::CDGESTION_NUMBER_ECHEANCE_DEFAULT;
-        }
+        $req = Db::getInstance()->getValue($sql);
 
         return new OrderGestionPayment($req);
     }

@@ -123,6 +123,9 @@ $(document).ready(function () {
                 loader.hide();
                 pErrors.text(data.message);
                 divErrors.toggle(data.error);
+                if (data.error == false) {
+                    getOrderInformations();
+                }
             },
             error: function (data) {
                 console.log(data);
@@ -154,7 +157,7 @@ $(document).ready(function () {
             url: linkUpdateAccompte,
             data: {
                 id_order: idOrder,
-                numberEcheance: numberEcheancesTotal,
+                number_echeance: numberEcheancesTotal,
                 accompte: accompte
             },
             success: function (data) {
@@ -162,6 +165,9 @@ $(document).ready(function () {
                 loader.hide();
                 pErrors.text(data.message);
                 divErrors.toggle(data.error);
+                if (data.error == false) {
+                    getOrderInformations();
+                }
             },
             error: function (data) {
                 console.log(data);
@@ -234,9 +240,17 @@ $(document).ready(function () {
 
     function updateSelectNumberEcheance() {
         for (var i = numberEcheancesMini; i <= numberEcheancesMax; i++) {
+            var selected = '';
+            if (i == numberEcheancesTotal) {
+                selected = 'selected';
+            } else {
+                selected = false;
+            }
+
             $("#nombreEcheances").append($('<option>', {
                 value: i,
-                text: i
+                text: i,
+                selected: selected
             }));
         }
     }

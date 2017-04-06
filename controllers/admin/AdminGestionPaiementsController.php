@@ -85,8 +85,12 @@ class AdminGestionPaiementsController extends ModuleAdminController
     public function ajaxProcessUpdateAccompte()
     {
         $accompte = (float)Tools::getValue("accompte");
-        $numberEcheances = (int)Tools::getValue("numberEcheances");
+        $numberEcheances = $this->nombreEcheance((int)Tools::getValue("number_echeance"));
         $id_order = (int)Tools::getValue("id_order");
+
+        $orderGestionPaymentManager = new OrderGestionPaymentManager();
+        $orderGestionPaymentManager->updateEcheance($id_order, $numberEcheances);
+
 
         if (empty($id_order)) {
             die(Tools::jsonEncode(array("message" => "id_order is empty", "error" => true)));
@@ -99,8 +103,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
             die(Tools::jsonEncode(array("message" => $accompte . "L'accompte doit être compris entre " . self::CDGESTION_ACCOMPTE_MINI . " € et " . $orderResteAPayer . "€", "error" => true)));
         }
 
-        $OrderGestionPaymentManager = new OrderGestionPaymentManager();
-        $isOk = $OrderGestionPaymentManager->updateAccompte($id_order, $accompte);
+        $isOk = $orderGestionPaymentManager->updateAccompte($id_order, $accompte);
         if ($isOk) {
             $orderGestionEcheancierManager = new OrderGestionEcheancierManager();
             $isOk = $orderGestionEcheancierManager->createEcheances($id_order);
@@ -119,7 +122,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
     public function ajaxProcessUpdateEcheance()
     {
         $id_order = (int)Tools::getValue("id_order");
-        $number_echeance = (int)Tools::getValue("number_echeance");
+        $number_echeance = $this->nombreEcheance((int)Tools::getValue("number_echeance"));
 
         $order = new Order((int)$id_order);
         if (null === $order) {
@@ -133,8 +136,12 @@ class AdminGestionPaiementsController extends ModuleAdminController
             die(Tools::jsonEncode(array("message" => "Nombre d'échéances mini : " . $numberEcheanceMini, "error" => true)));
         }
 
-
         $isOk = $orderGestionPaymentManager->updateEcheance($id_order, $number_echeance);
+
+        if ($isOk) {
+            $orderGestionEcheancierManager = new OrderGestionEcheancierManager();
+            $isOk = $orderGestionEcheancierManager->createEcheances($id_order);
+        }
 
         if ($isOk) {
             die(Tools::jsonEncode(array("message" => "Update échéance success. Order : " . $id_order . " Echéance : " . $number_echeance, "error" => false)));
@@ -161,6 +168,19 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $payments = $order->getOrderPayments();
 
         return count($payments);
+    }
+
+    /**
+     * Renvoie le nombre d'écheance par defaut si $numberEcheances == 0
+     *
+     * @param $numberEcheances
+     * @return int
+     */
+    private function nombreEcheance($numberEcheances)
+    {
+        return ($numberEcheances == 0)
+            ? AdminGestionPaiementsController::CDGESTION_NUMBER_ECHEANCE_DEFAULT
+            : $numberEcheances;
     }
 
 

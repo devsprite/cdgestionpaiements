@@ -27,7 +27,7 @@ class OrderGestionPaymentManager
         $orderGestionPaymentManager = new OrderGestionPayment();
         $orderGestionPayment = $orderGestionPaymentManager->getOrderGestionPaymentByIdOrder($id_order);
 
-        if (null === $orderGestionPayment) {
+        if (null === $orderGestionPayment->id_order) {
             $orderGestionPayment = new OrderGestionPayment();
             $orderGestionPayment->id_order = (int)$id_order;
             $orderGestionPayment->number_echeance = (float)$number_echeance;
