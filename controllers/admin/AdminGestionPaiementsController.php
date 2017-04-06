@@ -37,6 +37,7 @@ require_once __DIR__ . "/../../classes/models/OrderGestionPaymentPaybox.php";
 class AdminGestionPaiementsController extends ModuleAdminController
 {
     const CDGESTION_ACCOMPTE_MINI = 20;
+    const CDGESTION_ACCOMPTE_POURCENTAGE_MINI = 0.1;
     const CDGESTION_NUMBER_ECHEANCE_DEFAULT = 4;
     const CDGESTION_PAYMENT_METHOD = array(
         array('paymentMethod' => 'Carte Bancaire'),
@@ -100,6 +101,10 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
         $OrderGestionPaymentManager = new OrderGestionPaymentManager();
         $isOk = $OrderGestionPaymentManager->updateAccompte($id_order, $accompte);
+        if ($isOk) {
+            $orderGestionEcheancierManager = new OrderGestionEcheancierManager();
+            $isOk = $orderGestionEcheancierManager->createEcheances($id_order);
+        }
 
         if ($isOk) {
             die(Tools::jsonEncode(array("message" => "Update accompte success. Order " . $id_order . " Accompte : " . $accompte, "error" => false)));
