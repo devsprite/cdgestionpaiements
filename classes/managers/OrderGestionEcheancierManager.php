@@ -15,4 +15,12 @@ class OrderGestionEcheancierManager
 
         return $numberEcheances;
     }
+
+    public function getEcheancierAVenir($id_order)
+    {
+        $echeancier = new OrderGestionEcheancier();
+        $echeances = $echeancier->getAllEcheancesAVenirByIdOrder($id_order);
+
+        return $echeances;
+    }
 }

@@ -2,12 +2,13 @@
 
 class OrderGestionPaymentManager
 {
-    public function updateAccompte($id_order, $accompte) {
+    public function updateAccompte($id_order, $accompte)
+    {
         $isOk = true;
         $orderGestionPaymentManager = new OrderGestionPayment();
         $orderGestionPayment = $orderGestionPaymentManager->getOrderGestionPaymentByIdOrder($id_order);
 
-        if (null === $orderGestionPayment) {
+        if (null === $orderGestionPayment->id_order) {
             $orderGestionPayment = new OrderGestionPayment();
             $orderGestionPayment->id_order = (int)$id_order;
             $orderGestionPayment->accompte = (float)$accompte;
@@ -110,7 +111,88 @@ class OrderGestionPaymentManager
         return $echeancesMini + 10;
     }
 
+    public function getEcheancier($id_order)
+    {
+        $echeancierManager = new OrderGestionEcheancierManager();
+        $echeancierAVenir = $echeancierManager->getEcheancierAVenir($id_order);
+        $echeancier = array();
+        if ($echeancierAVenir) {
+            $echeancier = $this->formatEcheances($echeancierAVenir);
+        }
 
+        return $echeancier;
+    }
 
+    private function formatEcheances($echeancierAVenir)
+    {
+        $echeances = array();
+        $echeance = array(
+            'idEcheancier' => 0,
+            'btnSubmitType' => '',
+            'btnSubmitName' => '',
+            'btnSubmitText' => '',
+            'paymentDate' => '',
+            'paymentMethods' => array(),
+            'paymentMethod' => '',
+            'paymentTransactionId' => '',
+            'checked' => '',
+            'paymentAmount' => '0',
+            'invoices' => array(array()),
+        );
+
+        foreach ($echeancierAVenir as $echeanceAVenir) {
+            $echeance['idEcheancier'] = $echeanceAVenir['id_order_gestion_echeancier'];
+            $echeance['btnSubmitType'] = $this->btnSubmitType($echeanceAVenir['checked']);
+            $echeance['btnSubmitName'] = $this->btnSubmitName($echeanceAVenir['checked']);
+            $echeance['btnSubmitText'] = $this->btnSubmitText($echeanceAVenir['checked']);
+            $echeance['paymentDate'] = $echeanceAVenir['payment_date'];
+            $echeance['paymentMethods'] = AdminGestionPaiementsController::CDGESTION_PAYMENT_METHOD;
+            $echeance['paymentMethod'] = $echeanceAVenir['payment_method'];
+            $echeance['paymentTransactionId'] = $echeanceAVenir['payment_transaction_id'];
+            $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
+            $echeance['paymentAmount'] = $echeanceAVenir['payment_amount'];
+            $echeance['invoices'] = $this->paymentInvoices($echeanceAVenir['id_order']);
+
+            $echeances[] = $echeance;
+        }
+
+        return $echeances;
+    }
+
+    private function btnSubmitType($checked)
+    {
+        return ($checked) ? 'success' : 'danger';
+    }
+
+    private function btnSubmitName($checked)
+    {
+        return ($checked) ? 'gestionSubmitValider' : 'gestionSubmitAjouter';
+    }
+
+    private function btnSubmitText($checked)
+    {
+        return ($checked) ? 'Valider' : 'Ajouter';
+    }
+
+    private function paymentIsChecked($id_order_gestion_echeancier)
+    {
+        return OrderGestionPaymentPaybox::echeanceIsChecked($id_order_gestion_echeancier);
+    }
+
+    private function paymentInvoices($id_order)
+    {
+        $invoice = array(
+            'invoiceNumber' => 0,
+            'invoiceFormated' => ''
+        );
+        $order = new Order($id_order);
+        if ($order->hasInvoice()) {
+            $invoiceNumber = $order->invoice_number;
+            $invoice['invoiceNumber'] = $invoiceNumber;
+            $invoice['invoiceFormated'] = '#FA' . str_pad($invoiceNumber, 6, '0', STR_PAD_LEFT);
+        }
+
+        return $invoice;
+    }
 
 }

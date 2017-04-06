@@ -45,4 +45,18 @@ class OrderGestionEcheancier extends ObjectModel
 
         return $req;
     }
+
+    public function getAllEcheancesAVenirByIdOrder($id_order)
+    {
+        $sql = "SELECT ogpe.*, ogp.*
+                FROM `"._DB_PREFIX_."order_gestion_payment` as ogp
+                LEFT JOIN `"._DB_PREFIX_."order_gestion_echeancier` as ogpe 
+                ON ogp.id_order_gestion_payment = ogpe.id_order_gestion_payment 
+                WHERE ogp.id_order = ".(int)$id_order."
+                AND ogpe.payed = 0";
+
+        $req = Db::getInstance()->executeS($sql);
+
+        return $req;
+    }
 }

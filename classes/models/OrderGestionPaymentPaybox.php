@@ -38,4 +38,13 @@ class OrderGestionPaymentPaybox extends ObjectModel
         )
     );
 
+    public static function echeanceIsChecked($id_order_gestion_echeancier)
+    {
+        $sql = "SELECT COUNT(*) FROM `"._DB_PREFIX_."order_gestion_payment_paybox`
+                WHERE id_order_gestion_echeancier = ".(int)$id_order_gestion_echeancier;
+        $req = DB::getInstance()->getValue($sql);
+
+        return (bool)$req;
+    }
+
 }

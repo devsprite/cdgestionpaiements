@@ -12,46 +12,45 @@ var templatePayment = '' +
     '   </tr>' +
     '</thead>' +
     '<tbody>' +
-    '   <tr class="current-edit hidden-print">' +
+    '{{#echeancier}}' +
+    '   <tr class="current-edit hidden-print {{checked}}">' +
     '       <td>' +
     '           <div class="input-group fixed-width-xl">' +
-    '               <input type="text" name="payment_date" class="datepicker hasDatepicker" value="2017-04-04" id="dp1491312768749">' +
+    '               <input type="text" name="payment_date" class="datepicker" value="{{paymentDate}}" data-echeancier-id="{{idEcheancier}}">' +
     '               <div class="input-group-addon">' +
     '                   <i class="icon-calendar-o"></i>' +
     '               </div>' +
     '           </div>' +
     '       </td>' +
     '       <td>' +
-    '           <input name="payment_method" list="payment_method" class="payment_method">' +
-    '           <datalist id="payment_method">' +
-    '               <option value="Chèque"></option>' +
-    '               <option value="Virement bancaire"></option>' +
-    '               <option value="PayPal"></option>' +
-    '               <option value="Carte Bancaire"></option>' +
-    '               <option value="Gestion des abonnements"></option>' +
+    '           <input name="payment_method_{{idEcheancier}}" value="{{paymentMethod}}" list="payment_method_{{idEcheancier}}" class="payment_method" data-echeancier-id="{{idEcheancier}}">' +
+    '           <datalist id="payment_method_{{idEcheancier}}">' +
+    '{{#paymentMethods}}' +
+    '               <option value="{{paymentMethod}}"></option>' +
+    '{{/paymentMethods}}' +
     '           </datalist>' +
     '       </td>' +
-    '    <td>' + //TODO reprendre ici
-    '    <input type="text" name="payment_transaction_id" value="" class="form-control fixed-width-sm">' +
-    '    </td>' +
-    '    <td>' +
-    '    <input type="text" name="payment_amount" value="" class="form-control fixed-width-sm pull-left">' +
-    '    <select name="payment_currency" class="payment_currency form-control fixed-width-xs pull-left">' +
-    '    <option value="1" selected="selected">€</option>' +
-    '    </select>' +
-    '    </td>' +
-    '    <td>' +
-    '    <select name="payment_invoice" id="payment_invoice">' +
-    '    <option value="60605" selected="selected">#FA060711</option>' +
-    '</select>' +
-    '</td>' +
-    '<td class="actions">' +
-    '    <button class="btn btn-primary btn-block" type="submit" name="submitAddPayment">' +
-    '    Ajouter' +
-    '    </button>' +
-    '    </td>' +
+    '       <td>' +
+    '           <input type="text" name="payment_transaction_id" value="{{paymentTransactionId}}" class="form-control fixed-width-sm" data-echeancier-id="{{idEcheancier}}">' +
+    '       </td>' +
+    '       <td>' +
+    '           <input type="text" name="payment_amount" value="{{paymentAmount}}" class="form-control fixed-width-sm pull-left" data-echeancier-id="{{idEcheancier}}">' +
+    '           <select name="payment_currency" class="payment_currency form-control fixed-width-xs pull-left">' +
+    '               <option value="1" selected="selected">€</option>' +
+    '           </select>' +
+    '       </td>' +
+    '       <td>' +
+    '           <select name="payment_invoice" id="" data-echeancier-id="{{idEcheancier}}">' +
+    '{{#invoices}}' +
+    '               <option value="{{invoiceNumber}}" selected="selected">{{invoiceFormated}}</option>' +
+    '{{/invoices}}' +
+    '           </select>' +
+    '       </td>' +
+    '       <td class="actions">' +
+    '           <button class="btn btn-{{btnSubmitType}} btn-block" type="button" name="{{btnSubmitName}}" data-echeancier-id="{{idEcheancier}}">{{btnSubmitText}}</button>' +
+    '       </td>' +
     '    </tr>' +
-    '' +
-    '    </tbody>' +
-    '    </table>' +
-    '    </div>';
+    '{{/echeancier}}' +
+    '</tbody>' +
+    '</table>' +
+    '</div>';

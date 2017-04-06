@@ -1,73 +1,115 @@
 $(document).ready(function () {
 
-    var total_paid_real;
-    var orders_total_paid_tax_incl;
-    var order_reste_a_payer;
-    var paymentsNumber;
-    var numberEcheancesTotal;
-    var numberEcheancesMini;
-    var numberEcheancesMax;
-    var accompte;
-    var accompteMini;
+    var total_paid_real = 0;
+    var orders_total_paid_tax_incl = 0;
+    var order_reste_a_payer = 0;
+    var paymentsNumber = 0;
+    var numberEcheancesTotal = 0;
+    var numberEcheancesMini = 0;
+    var numberEcheancesMax = 0;
+    var accompte = 0;
+    var accompteMini = 20;
     var loader = $(".loader");
     var divErrors = $("#cdgestion-errors");
     var pErrors = $("#cdgestion-errors-message");
 
-    var linkOrderInformations;
-    var linkUpdateAccompte;
-    var linkUpdateNbrEcheance;
+    var linkOrderInformations = '';
+    var linkUpdateAccompte = '';
+    var linkUpdateNbrEcheance = '';
     if (typeof adminGestionPaiementsController !== 'undefined') {
         linkOrderInformations = adminGestionPaiementsController + "&action=GetOrderInformations&ajax=1";
         linkUpdateAccompte = adminGestionPaiementsController + "&action=UpdateAccompte&ajax=1";
         linkUpdateNbrEcheance = adminGestionPaiementsController + "&action=UpdateEcheance&ajax=1";
     }
 
-    var idOrder;
+    var idOrder = 0;
     if (typeof id_order !== 'undefined') {
         idOrder = id_order;
     }
 
-    var rendered = Mustache.render(templatePayment, {name: "Luke"});
-    $("#cdgestionEcheancier").html(rendered);
+    var echeancier = {echeancier:[]};
+    var _echeancier = {
+        echeancier:[
+            {
+                idEcheancier: 123,
+                btnSubmitType: 'primary',
+                btnSubmitName: 'submitAjouterEcheancier',
+                btnSubmitText: 'Ajouter',
+                paymentDate: '2017-03-01',
+                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+                paymentTransactionId: 756981,
+                checked:'success',
+                paymentAmount: 53.68,
+                invoices:[
+                    {invoiceNumber:75023, invoiceFormated: '#FA075023'},
+                    {invoiceNumber:75024, invoiceFormated: '#FA075024'}
+                ]
+            },
+            {
+                idEcheancier: 124,
+                btnSubmitType: 'primary',
+                btnSubmitName: 'submitAjouterEcheancier',
+                btnSubmitText: 'Valider',
+                paymentDate: '2017-04-01',
+                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+                paymentTransactionId: 756352,
+                checked:'danger',
+                paymentAmount: 53.68,
+                invoices:[
+                    {invoiceNumber:75023, invoiceFormated: '#FA075023'}
+                ]
+            },
+            {
+                idEcheancier: 125,
+                btnSubmitType: 'primary',
+                btnSubmitName: 'submitAjouterEcheancier',
+                btnSubmitText: 'Ajouter',
+                paymentDate: '2017-05-01',
+                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+                paymentTransactionId: '',
+                checked:'',
+                paymentAmount: 53.68,
+                invoices:[
+                    {invoiceNumber:75023, invoiceFormated: '#FA075023'}
+                ]
+            },
+            {
+                idEcheancier: 126,
+                btnSubmitType: 'primary',
+                btnSubmitName: 'submitAjouterEcheancier',
+                btnSubmitText: 'Valider',
+                paymentDate: '2017-06-01',
+                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+                paymentTransactionId: '',
+                checked:'',
+                paymentAmount: 53.68,
+                invoices:[
+                    {invoiceNumber:75023, invoiceFormated: '#FA075023'}
+                ]
+            }
+        ]
+    };
 
-
-
-    console.log(html);
-
-    initEcheancier();
+    updateEcheancier();
 
     $("#getOrderInformation").click(function () {
-        loader.toggle(true);
-        $.ajax({
-            type: "post",
-            url: linkOrderInformations,
-            dataType: "json",
-            data: {id_order: idOrder},
-            success: function (data) {
-                loader.toggle(false);
-                console.log(data);
-            },
-            error: function () {
-                loader.toggle(false);
-            }
-        });
+        loader.show();
+        getOrderInformations();
     });
 
     // Update nombre d'echeance //
-
     $('#nombreEcheances').change(function (evt) {
         numberEcheancesTotal = parseInt(evt.target.value);
         if (numberEcheancesTotal < numberEcheancesMini) {
             pErrors.text("Nombre d'échéance mini : " + numberEcheancesMini);
-            divErrors.toggle(true);
+            divErrors.show();
         } else {
             updateNombreEcheance();
         }
-
     });
 
     function updateNombreEcheance() {
-        loader.toggle(true);
+        loader.show();
         $.ajax({
             type: "post",
             url: linkUpdateNbrEcheance,
@@ -78,13 +120,13 @@ $(document).ready(function () {
             },
             success: function (data) {
                 console.log(data);
-                loader.toggle(false);
+                loader.hide();
                 pErrors.text(data.message);
                 divErrors.toggle(data.error);
             },
             error: function (data) {
                 console.log(data);
-                loader.toggle(false);
+                loader.hide();
             }
         });
     }
@@ -98,40 +140,40 @@ $(document).ready(function () {
             updateAccompte();
         } else if ((accompte > order_reste_a_payer) || (accompte < accompteMini)) {
             pErrors.text("l'accompte doit être compris entre " + accompteMini + " € et " + order_reste_a_payer + " €");
-            divErrors.toggle(true);
+            divErrors.show();
         } else {
             updateAccompte();
         }
     });
 
     function updateAccompte() {
-        loader.toggle(true);
+        loader.show();
         $.ajax({
             type: "post",
             dataType: "json",
             url: linkUpdateAccompte,
             data: {
                 id_order: idOrder,
+                numberEcheance: numberEcheancesTotal,
                 accompte: accompte
             },
             success: function (data) {
                 console.log(data);
-                loader.toggle(false);
+                loader.hide();
                 pErrors.text(data.message);
                 divErrors.toggle(data.error);
             },
             error: function (data) {
                 console.log(data);
-                loader.toggle(false);
+                loader.hide();
             }
         });
     }
-
     /****************/
 
 
     function getOrderInformations() {
-        loader.toggle(true);
+        loader.show();
         $.ajax({
             type: "post",
             dataType: "json",
@@ -140,13 +182,13 @@ $(document).ready(function () {
                 id_order: idOrder
             },
             success: function (data) {
-                console.log(data);
                 updateVariables(data);
-                loader.toggle(false);
+                console.log(data);
+                loader.hide();
             },
             error: function () {
                 console.log("Error getOrderInformations");
-                loader.toggle(false);
+                loader.hide();
             }
         });
     }
@@ -161,6 +203,7 @@ $(document).ready(function () {
         numberEcheancesMax = data.numberEcheancesMax;
         accompte = data.accompte;
         accompteMini = data.accompteMini;
+        echeancier = {echeancier:data.echeancier};
 
         updateDisplay();
     }
@@ -170,18 +213,26 @@ $(document).ready(function () {
         $("#totalDejaPaye").text(formatPrice(total_paid_real));
         $("#resteAPayer").text(formatPrice(order_reste_a_payer));
         $("#accompte").val(accompte);
-        initSelectNumberEcheance();
-        initAccompte();
+        updateSelectNumberEcheance();
+        displayAccompte();
         displayInputs();
+        displayEcheances();
     }
 
-    function initAccompte() {
-        if (numberEcheancesMini >= 1) {
-            $(".gestion-accompte").toggle(false);
+    function displayEcheances() {
+        if (echeancier.echeancier.length > 0) {
+            var rendered = Mustache.render(templatePayment, echeancier);
+            $("#cdgestionEcheancier").html(rendered);
         }
     }
 
-    function initSelectNumberEcheance() {
+    function displayAccompte() {
+        if (numberEcheancesMini >= 1) {
+            $(".gestion-accompte").hide();
+        }
+    }
+
+    function updateSelectNumberEcheance() {
         for (var i = numberEcheancesMini; i <= numberEcheancesMax; i++) {
             $("#nombreEcheances").append($('<option>', {
                 value: i,
@@ -190,9 +241,10 @@ $(document).ready(function () {
         }
     }
 
+    // Cache les champs nombre d'echeances et accompte si il n'y a plus rien à payer
     function displayInputs() {
         if (order_reste_a_payer <= 0) {
-            $(".gestion-inputs").toggle(false);
+            $(".gestion-inputs").hide();
         }
     }
 
@@ -205,7 +257,7 @@ $(document).ready(function () {
         return result.toFixed(2);
     }
 
-    function initEcheancier() {
+    function updateEcheancier() {
         getOrderInformations();
     }
 
