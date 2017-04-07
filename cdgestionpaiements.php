@@ -55,6 +55,7 @@ class Cdgestionpaiements extends Module
         if (!parent::install() OR
             !$this->registerHook('DisplayBackOfficeHeader') OR
             !$this->installAdminController() OR
+            !$this->installAdminImportPayboxController() OR
             !$this->createTableOrderGestionPayment() OR
             !$this->createTableOrderGestionEcheance() OR
             !$this->createTableOrderGestionPaymentPaybox()
@@ -69,6 +70,7 @@ class Cdgestionpaiements extends Module
     {
         if (!parent::uninstall() OR
             !$this->uninstallAdminController() OR
+            !$this->uninstallAdminImportPayboxController() OR
             !$this->removeTables()
         ) {
             return false;
@@ -142,6 +144,32 @@ class Cdgestionpaiements extends Module
             return false;
         }
         return true;
+    }
+
+    private function installAdminImportPayboxController()
+    {
+        $tab = new Tab();
+        $tab->active = 1;
+        $tab->class_name = 'AdminGestionPaybox';
+        $tab->name = array();
+        foreach (Language::getLanguages(true) as $lang)
+            $tab->name[$lang['id_lang']] = 'Import Paybox';
+        $tab->id_parent = 136;
+        $tab->module = $this->name;
+
+        return (bool)$tab->add();
+    }
+
+    private function uninstallAdminImportPayboxController()
+    {
+        $id_tab = (int)Tab::getIdFromClassName('AdminGestionPaybox');
+
+        if ($id_tab) {
+            $tab = new Tab($id_tab);
+            return (bool)$tab->delete();
+        }
+
+        return false;
     }
 
     private function installAdminController()
