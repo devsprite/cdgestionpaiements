@@ -166,12 +166,12 @@ class OrderGestionPaymentManager
 
     private function btnSubmitName($checked)
     {
-        return ($checked) ? 'gestionSubmitValider' : 'gestionSubmitAjouter';
+        return ($checked) ? 'gestionSubmitValider' : 'gestionSubmitDelete';
     }
 
     private function btnSubmitText($checked)
     {
-        return ($checked) ? 'Valider' : 'Ajouter';
+        return ($checked) ? 'Valider' : 'Supprimer';
     }
 
     private function paymentIsChecked($id_order_gestion_echeancier)

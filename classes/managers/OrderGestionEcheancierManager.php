@@ -29,10 +29,12 @@ class OrderGestionEcheancierManager
         $orderGestionPayment = new OrderGestionPayment();
         $gestionPayment = $orderGestionPayment->getOrderGestionPaymentByIdOrder($id_order);
         $order = new Order($id_order);
+        $payments = $order->getOrderPayments();
+        $paymentsNumber = count($payments);
         $resteAPayer = $order->total_paid_tax_incl - $order->total_paid_real;
         $montantEcheances = array();
 
-        if ($gestionPayment->accompte > 0) {
+        if ($gestionPayment->accompte > 0 && $paymentsNumber == 0) {
             $montantEcheances = $this->calculMontantEcheancesWithAccompte($gestionPayment, $resteAPayer, $order->total_paid_tax_incl);
         } else {
             $montantEcheances = $this->calculMontantEcheances($resteAPayer, $gestionPayment->number_echeance, $order->total_paid_tax_incl);

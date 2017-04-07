@@ -151,6 +151,52 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
     }
 
+    public function ajaxProcessUpdateInputEcheance()
+    {
+        $inputValues = Tools::getValue("inputValues");
+        $id_order_gestion_echeancier = (int)$inputValues['id_order_gestion_echeancier'];
+        $input_name = htmlentities($inputValues['input_name']);
+        $input_value = htmlspecialchars($inputValues['input_value']);
+
+        $messageRetour = array('message' => '', 'error' => true);
+        if (!empty($id_order_gestion_echeancier)) {
+            $orderEcheancier = new OrderGestionEcheancier($id_order_gestion_echeancier);
+
+            switch ($inputValues['input_name']) {
+                case "payment_date" :
+                    $input_value = str_replace("/", "-", $input_value);
+                    $orderEcheancier->payment_date = date("Y-m-d", strtotime($input_value));
+                    $orderEcheancier->update();
+                    $messageRetour['message'] = "payment_date updated " . $orderEcheancier->payment_date;
+                    break;
+                case "payment_method" :
+                    $orderEcheancier->payment_method = $input_value;
+                    $orderEcheancier->update();
+                    $messageRetour['message'] = "payment_method updated " . $orderEcheancier->payment_method;
+                    break;
+                case "payment_transaction_id" :
+                    $orderEcheancier->payment_transaction_id = (int)$input_value;
+                    $orderEcheancier->update();
+                    $messageRetour['message'] = "payment_transaction_id updated " . $orderEcheancier->payment_transaction_id;
+                    break;
+                case "payment_amount" :
+                    $orderEcheancier->payment_amount = round((float)str_replace(",", ".", $input_value), 2);
+                    $orderEcheancier->update();
+                    $messageRetour['message'] = "payment_amount updated " . $orderEcheancier->payment_amount;
+                    break;
+                case "gestionSubmitDelete":
+                    $orderEcheancier->delete();
+                    $messageRetour['message'] = "Echeance deleted " . $input_value;
+                    break;
+                default:
+                    $messageRetour['message'] = "Il n'y a pas de valeur correspondante.";
+                    $messageRetour['error'] = false;
+            }
+        }
+
+        die(Tools::jsonEncode($messageRetour));
+    }
+
 
     private function getResteAPayer(Order $order)
     {

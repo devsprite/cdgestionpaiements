@@ -16,10 +16,12 @@ $(document).ready(function () {
     var linkOrderInformations = '';
     var linkUpdateAccompte = '';
     var linkUpdateNbrEcheance = '';
+    var linkUpdateInputEcheance = '';
     if (typeof adminGestionPaiementsController !== 'undefined') {
         linkOrderInformations = adminGestionPaiementsController + "&action=GetOrderInformations&ajax=1";
         linkUpdateAccompte = adminGestionPaiementsController + "&action=UpdateAccompte&ajax=1";
         linkUpdateNbrEcheance = adminGestionPaiementsController + "&action=UpdateEcheance&ajax=1";
+        linkUpdateInputEcheance = adminGestionPaiementsController + "&action=UpdateInputEcheance&ajax=1";
     }
 
     var idOrder = 0;
@@ -28,69 +30,6 @@ $(document).ready(function () {
     }
 
     var echeancier = {echeancier:[]};
-    var _echeancier = {
-        echeancier:[
-            {
-                idEcheancier: 123,
-                btnSubmitType: 'primary',
-                btnSubmitName: 'submitAjouterEcheancier',
-                btnSubmitText: 'Ajouter',
-                paymentDate: '2017-03-01',
-                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-                paymentTransactionId: 756981,
-                checked:'success',
-                paymentAmount: 53.68,
-                invoices:[
-                    {invoiceNumber:75023, invoiceFormated: '#FA075023'},
-                    {invoiceNumber:75024, invoiceFormated: '#FA075024'}
-                ]
-            },
-            {
-                idEcheancier: 124,
-                btnSubmitType: 'primary',
-                btnSubmitName: 'submitAjouterEcheancier',
-                btnSubmitText: 'Valider',
-                paymentDate: '2017-04-01',
-                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-                paymentTransactionId: 756352,
-                checked:'danger',
-                paymentAmount: 53.68,
-                invoices:[
-                    {invoiceNumber:75023, invoiceFormated: '#FA075023'}
-                ]
-            },
-            {
-                idEcheancier: 125,
-                btnSubmitType: 'primary',
-                btnSubmitName: 'submitAjouterEcheancier',
-                btnSubmitText: 'Ajouter',
-                paymentDate: '2017-05-01',
-                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-                paymentTransactionId: '',
-                checked:'',
-                paymentAmount: 53.68,
-                invoices:[
-                    {invoiceNumber:75023, invoiceFormated: '#FA075023'}
-                ]
-            },
-            {
-                idEcheancier: 126,
-                btnSubmitType: 'primary',
-                btnSubmitName: 'submitAjouterEcheancier',
-                btnSubmitText: 'Valider',
-                paymentDate: '2017-06-01',
-                paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-                paymentTransactionId: '',
-                checked:'',
-                paymentAmount: 53.68,
-                invoices:[
-                    {invoiceNumber:75023, invoiceFormated: '#FA075023'}
-                ]
-            }
-        ]
-    };
-
-    updateEcheancier();
 
     $("#getOrderInformation").click(function () {
         loader.show();
@@ -107,6 +46,8 @@ $(document).ready(function () {
             updateNombreEcheance();
         }
     });
+
+    updateEcheancier();
 
     function updateNombreEcheance() {
         loader.show();
@@ -214,6 +155,10 @@ $(document).ready(function () {
         updateDisplay();
     }
 
+    function updateEcheancier() {
+        getOrderInformations();
+    }
+
     function updateDisplay() {
         $("#totalAPayer").text(formatPrice(orders_total_paid_tax_incl));
         $("#totalDejaPaye").text(formatPrice(total_paid_real));
@@ -229,7 +174,25 @@ $(document).ready(function () {
         if (echeancier.echeancier.length > 0) {
             var rendered = Mustache.render(templatePayment, echeancier);
             $("#cdgestionEcheancier").html(rendered);
+            $("#gestionTBodyEcheances").click(function(evt) {
+                if("button" == evt.target.type) {
+                    updateInput(evt);
+                }
+            });
+            $('#gestionTBodyEcheances').change(function(evt){
+                updateInput(evt);
+            });
         }
+        $(".datepicker").datepicker();
+    }
+
+    function updateInput(evt) {
+        var inputEcheanceValues = {
+            'id_order_gestion_echeancier': $(evt.target).data("echeance-id"),
+            'input_name': evt.target.name,
+            'input_value': evt.target.value
+        };
+        updateInputEcheance(inputEcheanceValues);
     }
 
     function displayAccompte() {
@@ -238,7 +201,27 @@ $(document).ready(function () {
         }
     }
 
+    // Met à jour un champ de l'écheancier
+    function updateInputEcheance(inputEcheanceValues) {
+        loader.show();
+        $.ajax({
+            url: linkUpdateInputEcheance,
+            type: "post",
+            dataType: "json",
+            data: {inputValues: inputEcheanceValues},
+            success: function(data){
+                getOrderInformations();
+                console.log(data);
+            },
+            error: function(data){
+                console.log("Error updateInputEcheance");
+                loader.hide();
+            }
+        });
+    }
+
     function updateSelectNumberEcheance() {
+        $("#nombreEcheances > option").remove();
         for (var i = numberEcheancesMini; i <= numberEcheancesMax; i++) {
             var selected = '';
             if (i == numberEcheancesTotal) {
@@ -271,8 +254,68 @@ $(document).ready(function () {
         return result.toFixed(2);
     }
 
-    function updateEcheancier() {
-        getOrderInformations();
-    }
+
 
 });
+
+// var _echeancier = {
+//     echeancier:[
+//         {
+//             idEcheancier: 123,
+//             btnSubmitType: 'primary',
+//             btnSubmitName: 'submitAjouterEcheancier',
+//             btnSubmitText: 'Ajouter',
+//             paymentDate: '2017-03-01',
+//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+//             paymentTransactionId: 756981,
+//             checked:'success',
+//             paymentAmount: 53.68,
+//             invoices:[
+//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'},
+//                 {invoiceNumber:75024, invoiceFormated: '#FA075024'}
+//             ]
+//         },
+//         {
+//             idEcheancier: 124,
+//             btnSubmitType: 'primary',
+//             btnSubmitName: 'submitAjouterEcheancier',
+//             btnSubmitText: 'Valider',
+//             paymentDate: '2017-04-01',
+//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+//             paymentTransactionId: 756352,
+//             checked:'danger',
+//             paymentAmount: 53.68,
+//             invoices:[
+//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'}
+//             ]
+//         },
+//         {
+//             idEcheancier: 125,
+//             btnSubmitType: 'primary',
+//             btnSubmitName: 'submitAjouterEcheancier',
+//             btnSubmitText: 'Ajouter',
+//             paymentDate: '2017-05-01',
+//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+//             paymentTransactionId: '',
+//             checked:'',
+//             paymentAmount: 53.68,
+//             invoices:[
+//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'}
+//             ]
+//         },
+//         {
+//             idEcheancier: 126,
+//             btnSubmitType: 'primary',
+//             btnSubmitName: 'submitAjouterEcheancier',
+//             btnSubmitText: 'Valider',
+//             paymentDate: '2017-06-01',
+//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
+//             paymentTransactionId: '',
+//             checked:'',
+//             paymentAmount: 53.68,
+//             invoices:[
+//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'}
+//             ]
+//         }
+//     ]
+// };
