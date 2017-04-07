@@ -6,9 +6,9 @@
  * http://hayageek.com/
  */
 (function ($) {
-    if($.fn.ajaxForm == undefined) {
-        $.getScript(("https:" == document.location.protocol ? "https://" : "http://") + "malsup.github.io/jquery.form.js");
-    }
+    // if($.fn.ajaxForm == undefined) {
+    //     $.getScript(("https:" == document.location.protocol ? "https://" : "http://") + "malsup.github.io/jquery.form.js");
+    // }
     var feature = {};
     feature.fileapi = $("<input type='file'/>").get(0).files !== undefined;
     feature.formdata = window.FormData !== undefined;
@@ -31,7 +31,7 @@
             dynamicFormData:false,
             maxFileSize: -1,
             maxFileCount: -1,
-            multiple: true,
+            multiple: false,
             dragDrop: true,
             autoSubmit: true,
             showCancel: true,
