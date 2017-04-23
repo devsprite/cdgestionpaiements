@@ -1,6 +1,6 @@
 <?php
 
-class OrderGestionPaymentPaybox extends ObjectModel
+class OrderGestionPaymentPayboxClass extends ObjectModel
 {
     public $id_order_gestion_payment_paybox;
 

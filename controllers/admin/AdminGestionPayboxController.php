@@ -30,7 +30,7 @@ require_once __DIR__ . "/../../classes/models/OrderGestionPayment.php";
 require_once __DIR__ . "/../../classes/managers/OrderGestionPaymentManager.php";
 require_once __DIR__ . "/../../classes/models/OrderGestionEcheancier.php";
 require_once __DIR__ . "/../../classes/managers/OrderGestionEcheancierManager.php";
-require_once __DIR__ . "/../../classes/models/OrderGestionPaymentPaybox.php";
+require_once __DIR__ . "/../../classes/OrderGestionPaymentPayboxClass.php";
 require_once __DIR__ . "/../../classes/managers/OrderGestionPaymentPayboxManager.php";
 
 class AdminGestionPayboxController extends ModuleAdminController
@@ -38,15 +38,68 @@ class AdminGestionPayboxController extends ModuleAdminController
     protected $html;
     protected $smarty;
     protected $path_tpl;
+    protected $original_filter;
     protected $headerCsv = "RemittancePaybox;Bank;Site;Rank;ShopName;IdPaybox;Date;TransactionId;IdAppel;DateOfIssue;HourOfIssue";
 
     public function __construct()
     {
+        $this->table = 'order_gestion_payment_paybox';
+        $this->identifier = 'id_order_gestion_payment_paybox';
+        $this->_orderBy = 'a!id_order';
+        $this->_orderWay = 'DESC';
+        $this->original_filter = '';
+        $this->list_no_link = true;
+
         $this->bootstrap = true;
         $this->lang = false;
         $this->context = Context::getContext();
         $this->smarty = $this->context->smarty;
         $this->path_tpl = _PS_MODULE_DIR_ . 'cdgestionpaiements/views/templates/admin/importpaybox/';
+        $this->_select = "GROUP_CONCAT(oge.id_order_gestion_echeancier) AS id_payment ";
+        $this->_join .= "LEFT JOIN `"._DB_PREFIX_."orders` AS o ON a.id_order = o.id_order ";
+        $this->_join .= "LEFT JOIN `"._DB_PREFIX_."order_gestion_payment` AS ogp ON o.id_order = ogp.id_order ";
+        $this->_join .= "LEFT JOIN `"._DB_PREFIX_."order_gestion_echeancier` AS oge ON ogp.id_order_gestion_payment = oge.id_order_gestion_payment ";
+        $this->_group .= "GROUP BY a.id_order_gestion_payment_paybox";
+
+
+        $this->fields_list = array(
+            'id_order_gestion_payment_paybox' => array(
+                'title' => 'id_order_gestion_payment_paybox',
+                'filter_key' => 'a!id_order_gestion_payment_paybox',
+            ),
+            'id_payment' => array(
+                'title' => 'oge.id_order_gestion_echeancier',
+                'filter_key' => 'oge!id_order_gestion_echeancier'
+            ),
+            'id_order' => array(
+                'title' => 'Id Order',
+                'filter_key' => 'a!id_order'
+            ),
+            'id_order_gestion_echeancier' => array(
+                'title' => 'Id order gestion echeancier'
+            ),
+            'id_order_payment' => array(
+                'title' => 'id_order_payment'
+            ),
+            'transaction_id' => array(
+                'title' => 'transaction_id'
+            ),
+            'date_of_issue' => array(
+                'title' => 'date_of_issue'
+            ),
+            'reference' => array(
+                'title' => 'reference'
+            ),
+            'amount' => array(
+                'title' => 'amount'
+            ),
+            'status' => array(
+                'title' => 'status'
+            ),
+            'checked' => array(
+                'title' => 'checked'
+            )
+        );
 
         parent::__construct();
     }
@@ -60,6 +113,23 @@ class AdminGestionPayboxController extends ModuleAdminController
         $this->content = $this->html;
 
         parent::initContent();
+    }
+
+    public function renderList()
+    {
+        if (isset($this->_filter) && trim($this->_filter) == '') {
+            $this->_filter = $this->original_filter;
+        }
+
+        $this->addRowAction('delete');
+
+        return parent::renderList();
+    }
+
+    public function renderView()
+    {
+        $this->tpl_view_vars['order_gestion_payment_paybox'] = $this->loadObject();
+        return parent::renderView();
     }
 
     public function setMedia()
@@ -87,8 +157,6 @@ class AdminGestionPayboxController extends ModuleAdminController
         if ($fileName['fileUploaded']) {
             $fileContent = $this->importCsvFromFile($fileName);
         }
-
-
     }
 
     private function uploadFile()
@@ -199,34 +267,42 @@ class AdminGestionPayboxController extends ModuleAdminController
 //      31 => string 'ErrorCode' (length=9)
             array_shift($arrayCsv);
             foreach ($arrayCsv as $row) {
-                $error = '';
+                $error = array();
                 $reference = preg_split("/[_-]/", $row[12]);
                 $id_order_gestion_payment_paybox = OrderGestionPaymentPayboxManager::isOrderPayboxExistByTransactionId($row[7]);
 
                 if ($id_order_gestion_payment_paybox) {
-                    $orderPaybox = new OrderGestionPaymentPaybox($id_order_gestion_payment_paybox);
+                    $orderPaybox = new OrderGestionPaymentPayboxClass($id_order_gestion_payment_paybox);
                 } else {
-                    $orderPaybox = new OrderGestionPaymentPaybox();
+                    $orderPaybox = new OrderGestionPaymentPayboxClass();
                 }
 
-                $orderPaybox->id_order = $reference[0];
-                $orderPaybox->transaction_id = $row[7];
-                $orderPaybox->date_of_issue = date("Y-m-d");//$row[9];
+                $orderPaybox->id_order = (int)$reference[0];
+                $orderPaybox->transaction_id = (int)$row[7];
+                $orderPaybox->date_of_issue = $this->formatDate($row[9]);
                 $orderPaybox->reference = $row[12];
-                $orderPaybox->amount = $row[17];
-                $orderPaybox->status = $row[28];
+                $orderPaybox->amount = floatval($row[17]);
+                $orderPaybox->status = utf8_encode($row[28]);
 
                 if ($id_order_gestion_payment_paybox) {
-                    $error = $orderPaybox->update();
+                    $error[] = $orderPaybox->update();
                 } else {
-                    $error = $orderPaybox->add();
+                    $error[] = $orderPaybox->add();
                 }
-                var_dump($error);
-                // Todo reprendre ici par le formatage de la date et la gestion des erreurs
             }
-
-            die();
         }
 
+        return $error;
     }
+
+    private function formatDate($stringDate)
+    {
+        $arrayDate = explode('/', $stringDate);
+        $day = $arrayDate[0];
+        $month = $arrayDate[1];
+        $year = $arrayDate[2];
+
+        return $year . '-' . $month . '-' . $day;
+    }
+
 }

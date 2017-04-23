@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../classes/OrderGestionPaymentPayboxClass.php";
+
 class OrderGestionPaymentManager
 {
     public function updateAccompte($id_order, $accompte)
@@ -156,6 +158,7 @@ class OrderGestionPaymentManager
             $echeances[] = $echeance;
         }
 
+
         return $echeances;
     }
 
@@ -176,7 +179,7 @@ class OrderGestionPaymentManager
 
     private function paymentIsChecked($id_order_gestion_echeancier)
     {
-        return OrderGestionPaymentPaybox::echeanceIsChecked($id_order_gestion_echeancier);
+        return OrderGestionPaymentPayboxClass::echeanceIsChecked($id_order_gestion_echeancier);
     }
 
     private function paymentInvoices($id_order)
