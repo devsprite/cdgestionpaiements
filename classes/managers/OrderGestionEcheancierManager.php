@@ -18,16 +18,14 @@ class OrderGestionEcheancierManager
 
     public function getEcheancierAVenir($id_order)
     {
-        $echeancier = new OrderGestionEcheancier();
-        $echeances = $echeancier->getAllEcheancesAVenirByIdOrder($id_order);
+        $echeances = OrderGestionEcheancier::getAllEcheancesAVenirByIdOrder($id_order);
 
         return $echeances;
     }
 
     public function createEcheances($id_order)
     {
-        $orderGestionPayment = new OrderGestionPayment();
-        $gestionPayment = $orderGestionPayment->getOrderGestionPaymentByIdOrder($id_order);
+        $gestionPayment = OrderGestionPayment::getOrderGestionPaymentByIdOrder($id_order);
         $order = new Order($id_order);
         $payments = $order->getOrderPayments();
         $paymentsNumber = count($payments);

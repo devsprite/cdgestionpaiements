@@ -2,7 +2,7 @@
     var linkUpload = "{$link->getAdminLink('AdminGestionPaybox')|addslashes}&action=uploadCsv&ajax=1";
 </script>
 <div class="row">
-    <div class="col-xs-12">
+    <div class="col-xs-6">
         <div class="panel">
             <div class="panel-heading">
                 <h4>Upload csv Paybox</h4>

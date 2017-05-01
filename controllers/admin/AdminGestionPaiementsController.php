@@ -71,7 +71,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $this->orderInformations['numberEcheancesTotal'] = (int)$orderGestionPaymentManager->getNumberEcheancesTotalByOrder($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesPayed'] = (int)$orderGestionPaymentManager->getNumberEcheancesPayed($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesAVenir'] = (int)$orderGestionEcheancierManager->getNumberEcheancesAVenir($this->orderInformations['id_order']);
-        $this->orderInformations['numberEcheancesMini'] = (int)$orderGestionPaymentManager->getNumberEcheancesMini($this->orderInformations['id_order']);
+        $this->orderInformations['numberEcheancesMini'] = 1;//(int)$orderGestionPaymentManager->getNumberEcheancesMini($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesMax'] = (int)$orderGestionPaymentManager->getNumberEcheancesMax($this->orderInformations['id_order']);
         $this->orderInformations['echeancier'] = $orderGestionPaymentManager->getEcheancier($this->orderInformations['id_order']);
     }
@@ -129,9 +129,9 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $orderGestionPaymentManager = new OrderGestionPaymentManager();
         $numberEcheanceMini = $orderGestionPaymentManager->getNumberEcheancesMini($id_order);
 
-        if ($number_echeance < $numberEcheanceMini) {
-            die(Tools::jsonEncode(array("message" => "Nombre d'échéances mini : " . $numberEcheanceMini, "error" => true)));
-        }
+//        if ($number_echeance < $numberEcheanceMini) {
+//            die(Tools::jsonEncode(array("message" => "Nombre d'échéances mini : " . $numberEcheanceMini, "error" => true)));
+//        }
 
         $isOk = $orderGestionPaymentManager->updateEcheance($id_order, $number_echeance);
 

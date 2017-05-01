@@ -46,7 +46,7 @@ class OrderGestionEcheancier extends ObjectModel
         return $req;
     }
 
-    public function getAllEcheancesAVenirByIdOrder($id_order)
+    public static function getAllEcheancesAVenirByIdOrder($id_order)
     {
         $sql = "SELECT ogpe.*, ogp.*
                 FROM `"._DB_PREFIX_."order_gestion_payment` as ogp

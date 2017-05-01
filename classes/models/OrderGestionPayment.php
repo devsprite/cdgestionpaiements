@@ -39,7 +39,7 @@ class OrderGestionPayment extends ObjectModel
         )
     );
 
-    public function getOrderGestionPaymentByIdOrder($id_order)
+    public static function getOrderGestionPaymentByIdOrder($id_order)
     {
         $sql = "SELECT id_order_gestion_payment FROM `" . _DB_PREFIX_ . "order_gestion_payment`
                 WHERE id_order = " . (int)$id_order;

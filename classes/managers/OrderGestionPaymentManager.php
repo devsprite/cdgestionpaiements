@@ -7,8 +7,7 @@ class OrderGestionPaymentManager
     public function updateAccompte($id_order, $accompte)
     {
         $isOk = true;
-        $orderGestionPaymentManager = new OrderGestionPayment();
-        $orderGestionPayment = $orderGestionPaymentManager->getOrderGestionPaymentByIdOrder($id_order);
+        $orderGestionPayment = OrderGestionPayment::getOrderGestionPaymentByIdOrder($id_order);
 
         if (null === $orderGestionPayment->id_order) {
             $orderGestionPayment = new OrderGestionPayment();
@@ -26,8 +25,7 @@ class OrderGestionPaymentManager
     public function updateEcheance($id_order, $number_echeance)
     {
         $isOk = true;
-        $orderGestionPaymentManager = new OrderGestionPayment();
-        $orderGestionPayment = $orderGestionPaymentManager->getOrderGestionPaymentByIdOrder($id_order);
+        $orderGestionPayment = OrderGestionPayment::getOrderGestionPaymentByIdOrder($id_order);
 
         if (null === $orderGestionPayment->id_order) {
             $orderGestionPayment = new OrderGestionPayment();
@@ -45,8 +43,7 @@ class OrderGestionPaymentManager
 
     public function getAccompteByOrder($id_order)
     {
-        $orderGestionPayment = new OrderGestionPayment();
-        $order = $orderGestionPayment->getOrderGestionPaymentByIdOrder((int)$id_order);
+        $order = OrderGestionPayment::getOrderGestionPaymentByIdOrder((int)$id_order);
 
         if (null === $order) {
             return null;
@@ -57,8 +54,7 @@ class OrderGestionPaymentManager
 
     public function getNumberEcheancesTotalByOrder($id_order)
     {
-        $orderGestionPayment = new OrderGestionPayment();
-        $order = $orderGestionPayment->getOrderGestionPaymentByIdOrder((int)$id_order);
+        $order = OrderGestionPayment::getOrderGestionPaymentByIdOrder((int)$id_order);
 
         if (null === $order) {
             return 4;
