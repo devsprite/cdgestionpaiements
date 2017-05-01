@@ -25,7 +25,7 @@
 if (!defined('_PS_VERSION_')) {
     exit;
 }
-
+// Todo faire la validation paybox coté echeancier de la page commande
 const CDGESTION_DAYS_BETWEEN_ECHEANCE = 2;
 require_once __DIR__ . "/../../classes/models/OrderGestionPayment.php";
 require_once __DIR__ . "/../../classes/managers/OrderGestionPaymentManager.php";
@@ -51,9 +51,13 @@ class AdminGestionPayboxController extends ModuleAdminController
         $this->original_filter = '';
         $this->list_no_link = true;
         $this->bulk_actions = array(
-            'Update Echéances Paybox' => array(
+            'Update' => array(
                 'text' => $this->l('Change Order Status'),
                 'icon' => 'icon-refresh'),
+            'Reset' => array(
+                'text' => 'Reset',
+                'icon' => 'icon-eye'
+            )
         );
 
         $this->bootstrap = true;
@@ -84,16 +88,20 @@ class AdminGestionPayboxController extends ModuleAdminController
                 'filter_key' => 'a!id_order'
             ),
             'id_order_payment' => array(
-                'title' => 'a!id_order_payment'
+                'title' => 'id_order_payment'
             ),
             'transaction_id' => array(
-                'title' => 'a!transaction_id'
+                'title' => 'transaction_id'
             ),
             'date_of_issue' => array(
-                'title' => 'a!date_of_issue'
+                'title' => 'date_of_issue'
             ),
             'amount' => array(
-                'title' => 'a!amount'
+                'title' => 'amount',
+                'callback' => 'setAmount'
+            ),
+            'payment_amount' => array(
+                'title' => 'payment_amount',
             ),
             'status' => array(
                 'title' => 'a!status'
@@ -134,7 +142,7 @@ class AdminGestionPayboxController extends ModuleAdminController
     public function setMedia()
     {
         $this->addCSS($this->path_tpl . '../../../css/uploadfile.css');
-        $this->addCSS($this->path_tpl . '../../../css/uploadfile.custom.css');
+        $this->addCSS($this->path_tpl . '../../../css/adminGestionPaybox.css');
         $this->addJquery("1.9.1");
         $this->addJS($this->path_tpl . '../../../js/jquery.form.js');
         $this->addJS($this->path_tpl . '../../../js/jquery.uploadfile.js');
@@ -144,13 +152,18 @@ class AdminGestionPayboxController extends ModuleAdminController
 
     public function getOrderGestionEcheancier($value, $payment)
     {
-        $id_order = $payment['id_order'];
-        $echeances = OrderGestionEcheancier::getAllEcheancesAVenirByIdOrder($id_order);
-        if (count($echeances) > 0) {
-            foreach ($echeances as $echeance) {
-                if ($payment['status'] == 'Télécollecté') {
-                    if ($this->isExistAnEcheance($payment, $echeance) == true) {
-                        return "<input type='checkbox' name='payment_payboxBox[]' value='".$payment['id_order_gestion_payment_paybox']."-".$echeance['id_order_gestion_echeancier']."' checked='' class='noborder'>";
+        if ($payment['status'] == 'Télécollecté') {
+            if ($payment['checked'] == 1) {
+                return "<i class='icon-check text-success'></i>";
+            } else {
+                $id_order = $payment['id_order'];
+                $echeances = OrderGestionEcheancier::getAllEcheancesAVenirByIdOrder($id_order);
+                if (count($echeances) > 0) {
+                    foreach ($echeances as $echeance) {
+                        $pay_status = $this->setPaymentStatus((float)$payment['amount'], (float)$echeance['payment_amount']);
+                        if ($this->isExistAnEcheance($payment, $echeance) == true) {
+                            return "<input type='checkbox' name='payment_payboxBox[]' value='" . $payment['id_order_gestion_payment_paybox'] . "-" . $echeance['id_order_gestion_echeancier'] . "' checked='' class='noborder " . $pay_status . "'>";
+                        }
                     }
                 }
             }
@@ -180,16 +193,36 @@ class AdminGestionPayboxController extends ModuleAdminController
 
     public function postProcess()
     {
-        if(Tools::isSubmit('payment_payboxBox')) {
+        parent::postProcess();
+    }
+
+    public function processBulkReset()
+    {
+        $sql = "DELETE FROM `ps_order_payment` WHERE order_reference = 57857 AND transaction_id > 0";
+        DB::getInstance()->execute($sql);
+
+        $sql = "UPDATE `ps_orders` SET total_paid_real = '255.75' WHERE id_order = 57857 ";
+        DB::getInstance()->execute($sql);
+
+        $sql = "DELETE FROM `order_gestion_echeancier` WHERE id_order_gestion_payment = 3";
+        DB::getInstance()->execute($sql);
+
+        $sql = "UPDATE `ps_order_gestion_payment_paybox` SET checked = 0 WHERE id_order = 57857";
+        DB::getInstance()->execute($sql);
+
+    }
+
+    public function processBulkUpdate()
+    {
+        if (Tools::isSubmit('payment_payboxBox') && !Tools::isSubmit('submitFilter')) {
             $this->updatePaymentsPaybox(Tools::getValue('payment_payboxBox'));
         }
-        parent::postProcess();
     }
 
     private function updatePaymentsPaybox($id_orders)
     {
         foreach ($id_orders as $id_order) {
-            $ids_payments = explode('-',$id_order);
+            $ids_payments = explode('-', $id_order);
             $id_payment_paybox = (int)$ids_payments[0];
             $id_payment_echeancier = (int)$ids_payments[1];
             $paymentPaybox = new OrderGestionPaymentPayboxClass($id_payment_paybox);
@@ -207,7 +240,7 @@ class AdminGestionPayboxController extends ModuleAdminController
         $commande = new Order($paymentPaybox->id_order);
         $invoice = new OrderInvoice($this->getInvoiceId($commande->invoice_number));
         $setPayment = $commande->addOrderPayment(
-            $paymentPaybox->amount/100, "Carte Bancaire", $paymentPaybox->transaction_id, null,
+            $paymentPaybox->amount / 100, "Carte Bancaire", $paymentPaybox->transaction_id, null,
             $paymentPaybox->date_of_issue . ' 00:00:00', $invoice);
         if ($setPayment) {
             $payment = $this->getByOrderIdTransaction($paymentPaybox->transaction_id);
@@ -218,6 +251,11 @@ class AdminGestionPayboxController extends ModuleAdminController
         }
 
         return $payment['id_order_payment'];
+    }
+
+    public function setAmount($value)
+    {
+        return $value / 100;
     }
 
     public function ajaxProcessUploadCsv()
@@ -389,8 +427,8 @@ class AdminGestionPayboxController extends ModuleAdminController
 
         return Db::getInstance()->getValue('
 			SELECT `id_order_invoice`
-			FROM `'._DB_PREFIX_.'order_invoice`
-			WHERE `number` = '.$order_number
+			FROM `' . _DB_PREFIX_ . 'order_invoice`
+			WHERE `number` = ' . $order_number
         );
     }
 
@@ -398,7 +436,25 @@ class AdminGestionPayboxController extends ModuleAdminController
     {
         return Db::getInstance()->getRow('
 			SELECT *
-			FROM `'._DB_PREFIX_.'order_payment`
-			WHERE `transaction_id` = \''.pSQL($order_reference).'\'');
+			FROM `' . _DB_PREFIX_ . 'order_payment`
+			WHERE `transaction_id` = \'' . pSQL($order_reference) . '\'');
+    }
+
+    /**
+     * @param $payment
+     * @param $echeance
+     * @return string
+     */
+    public function setPaymentStatus($payment, $echeance)
+    {
+        $pay_status = "";
+        $payment = $payment / 100;
+        if ($echeance == $payment) {
+            $pay_status = "pay_ok";
+        } else {
+            $pay_status = "pay_not_ok";
+        }
+
+        return $pay_status;
     }
 }
