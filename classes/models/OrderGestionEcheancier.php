@@ -32,6 +32,17 @@ class OrderGestionEcheancier extends ObjectModel
         )
     );
 
+    public static function getIdOrderByIdEcheancier($idEcheancier)
+    {
+        $sql = "SELECT ogp.id_order 
+                FROM `"._DB_PREFIX_."order_gestion_payment` as ogp, `"._DB_PREFIX_."order_gestion_echeancier` as oge
+                WHERE oge.id_order_gestion_echeancier = ".(int)$idEcheancier."
+                AND oge.id_order_gestion_payment = ogp.id_order_gestion_payment ";
+        $req = DB::getInstance()->getValue($sql);
+
+        return $req;
+    }
+
     public function getNumberEcheancesAVenirByIdOrder($id_order)
     {
         $sql = "SELECT COUNT(id_order_gestion_echeancier) as total

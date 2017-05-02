@@ -47,7 +47,7 @@ var templatePayment = '' +
     '           </select>' +
     '       </td>' +
     '       <td class="actions">' +
-    '           <button class="btn btn-{{btnSubmitType}} btn-block" type="button" name="{{btnSubmitName}}" data-echeance-id="{{idEcheancier}}">{{btnSubmitText}}</button>' +
+    '           <button class="btn btn-{{btnSubmitClass}} btn-block" type="button" name="{{btnSubmitName}}" data-echeance-id="{{idEcheancier}}">{{btnSubmitText}}</button>' +
     '       </td>' +
     '    </tr>' +
     '{{/echeancier}}' +

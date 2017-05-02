@@ -25,7 +25,7 @@
 if (!defined('_PS_VERSION_')) {
     exit;
 }
-// Todo faire la validation paybox coté echeancier de la page commande
+
 const CDGESTION_DAYS_BETWEEN_ECHEANCE = 2;
 require_once __DIR__ . "/../../classes/models/OrderGestionPayment.php";
 require_once __DIR__ . "/../../classes/managers/OrderGestionPaymentManager.php";

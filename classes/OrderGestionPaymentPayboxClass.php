@@ -22,6 +22,8 @@ class OrderGestionPaymentPayboxClass extends ObjectModel
 
     public $checked;
 
+    const CDGESTION_DAYS_BETWEEN_ECHEANCE = 2;
+
     public static $definition = array(
         'table' => 'order_gestion_payment_paybox',
         'primary' => 'id_order_gestion_payment_paybox',
@@ -45,6 +47,45 @@ class OrderGestionPaymentPayboxClass extends ObjectModel
         $req = DB::getInstance()->getValue($sql);
 
         return (bool)$req;
+    }
+
+    public static function getEcheance($id_order, $paymentDate)
+    {
+        $sql = "SELECT * 
+                FROM `"._DB_PREFIX_."order_gestion_payment_paybox` 
+                WHERE id_order = " . $id_order . "
+                AND status = 'Télécollecté' ";
+
+        $payments = DB::getInstance()->executeS($sql);
+
+        if (count($payments) > 0) {
+            foreach ($payments as $payment) {
+                if (self::isExistAnEcheance($paymentDate, $payment['date_of_issue'])) {
+                    return $payment;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Si une écheance existe dans le creneau de jours définit, return true
+     * @param $payment Payment Paybox
+     * @param $echeance Echeances de la commande
+     * @return bool
+     */
+    public static function isExistAnEcheance($payment, $echeance)
+    {
+        $datePaymentPaybox = new DateTime($payment);
+        $dateEcheanceOrder = new DateTime($echeance);
+        $dayBetweenEcheance = $datePaymentPaybox->diff($dateEcheanceOrder);
+
+        if ($dayBetweenEcheance->days < self::CDGESTION_DAYS_BETWEEN_ECHEANCE) {
+            return true;
+        }
+
+        return false;
     }
 
 }

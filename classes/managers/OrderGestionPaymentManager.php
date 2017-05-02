@@ -126,7 +126,7 @@ class OrderGestionPaymentManager
         $echeances = array();
         $echeance = array(
             'idEcheancier' => 0,
-            'btnSubmitType' => '',
+            'btnSubmitClass' => '',
             'btnSubmitName' => '',
             'btnSubmitText' => '',
             'paymentDate' => '',
@@ -136,20 +136,22 @@ class OrderGestionPaymentManager
             'checked' => '',
             'paymentAmount' => '0',
             'invoices' => array(array()),
+            'paiementPaybox' => array()
         );
 
         foreach ($echeancierAVenir as $echeanceAVenir) {
             $echeance['idEcheancier'] = $echeanceAVenir['id_order_gestion_echeancier'];
-            $echeance['btnSubmitType'] = $this->btnSubmitType($echeanceAVenir['checked']);
-            $echeance['btnSubmitName'] = $this->btnSubmitName($echeanceAVenir['checked']);
-            $echeance['btnSubmitText'] = $this->btnSubmitText($echeanceAVenir['checked']);
+            $echeance['paiementPaybox'] = $this->getPaymentPaybox($echeance);
             $echeance['paymentDate'] = $echeanceAVenir['payment_date'];
             $echeance['paymentMethods'] = AdminGestionPaiementsController::CDGESTION_PAYMENT_METHOD;
             $echeance['paymentMethod'] = $echeanceAVenir['payment_method'];
-            $echeance['paymentTransactionId'] = $echeanceAVenir['payment_transaction_id'];
+            $echeance['paymentTransactionId'] = $echeance['paiementPaybox']['transaction_id'];
             $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
             $echeance['paymentAmount'] = $echeanceAVenir['payment_amount'];
             $echeance['invoices'] = $this->paymentInvoices($echeanceAVenir['id_order']);
+            $echeance['btnSubmitClass'] = $this->btnSubmitClass($echeance['paiementPaybox']);
+            $echeance['btnSubmitName'] = $this->btnSubmitName($echeance['paiementPaybox']);
+            $echeance['btnSubmitText'] = $this->btnSubmitText($echeance['paiementPaybox']);
 
             $echeances[] = $echeance;
         }
@@ -158,19 +160,28 @@ class OrderGestionPaymentManager
         return $echeances;
     }
 
-    private function btnSubmitType($checked)
+    private function btnSubmitClass($echeance)
     {
-        return ($checked) ? 'success' : 'danger';
+        if (isset($echeance['checked']) && empty($echeance['checked']) ) {
+            return 'success';
+        }
+        return 'danger';
     }
 
-    private function btnSubmitName($checked)
+    private function btnSubmitName($echeance)
     {
-        return ($checked) ? 'gestionSubmitValider' : 'gestionSubmitDelete';
+        if (isset($echeance['checked']) && empty($echeance['checked']) ) {
+            return 'gestionSubmitValider';
+        }
+        return 'gestionSubmitDelete';
     }
 
-    private function btnSubmitText($checked)
+    private function btnSubmitText($echeance)
     {
-        return ($checked) ? 'Valider' : 'Supprimer';
+        if (isset($echeance['checked']) && empty($echeance['checked']) ) {
+            return 'Valider';
+        }
+        return 'Supprimer';
     }
 
     private function paymentIsChecked($id_order_gestion_echeancier)
@@ -192,6 +203,22 @@ class OrderGestionPaymentManager
         }
 
         return $invoice;
+    }
+
+    private function getPaymentPaybox($echeance)
+    {
+        $payment = array();
+        $id_order = OrderGestionEcheancier::getIdOrderByIdEcheancier($echeance['idEcheancier']);
+        $paymentPaybox = OrderGestionPaymentPayboxClass::getEcheance($id_order, $echeance['paymentDate']);
+        if ($paymentPaybox) {
+            $payment['id_order_gestion_payment_paybox'] = $paymentPaybox['id_order_gestion_payment_paybox'];
+            $payment['date_of_issue'] = $paymentPaybox['date_of_issue'];
+            $payment['amount'] = $paymentPaybox['amount'] / 100;
+            $payment['checked'] = $paymentPaybox['checked'];
+            $payment['transaction_id'] = $paymentPaybox['transaction_id'];
+        }
+
+        return $payment;
     }
 
 }
