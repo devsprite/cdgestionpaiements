@@ -85,7 +85,7 @@ class Cdgestionpaiements extends Module
                 `id_order_gestion_payment` INT NOT NULL AUTO_INCREMENT ,
                 `id_order` INT NOT NULL ,
                 `number_echeance` INT NOT NULL DEFAULT '0',
-                `accompte` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
+                `accompte` INT NOT NULL DEFAULT '0',
                 PRIMARY KEY (`id_order_gestion_payment`)) 
                 ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
         if (!Db::getInstance()->execute($sql)) {
@@ -215,4 +215,7 @@ class Cdgestionpaiements extends Module
         }
     }
 
+    // TODO Faire apparaitre la validation dans la commande si un paiement paybox correspond
+    // TODO Corriger la fonction reset pour faire les tests, il faut qu'elle efface le paiement
+    // TODO Pouvoir ajouter un paiement dans la commande
 }

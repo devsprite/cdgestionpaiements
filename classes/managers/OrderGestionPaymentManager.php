@@ -109,19 +109,19 @@ class OrderGestionPaymentManager
         return $echeancesMini + 10;
     }
 
-    public function getEcheancier($id_order)
+    public function getEcheancier($order)
     {
         $echeancierManager = new OrderGestionEcheancierManager();
-        $echeancierAVenir = $echeancierManager->getEcheancierAVenir($id_order);
+        $echeancierAVenir = $echeancierManager->getEcheancierAVenir($order['id_order']);
         $echeancier = array();
         if ($echeancierAVenir) {
-            $echeancier = $this->formatEcheances($echeancierAVenir);
+            $echeancier = $this->formatEcheances($echeancierAVenir, $order);
         }
 
         return $echeancier;
     }
 
-    private function formatEcheances($echeancierAVenir)
+    private function formatEcheances($echeancierAVenir, $order)
     {
         $echeances = array();
         $echeance = array(
@@ -136,7 +136,8 @@ class OrderGestionPaymentManager
             'checked' => '',
             'paymentAmount' => '0',
             'invoices' => array(array()),
-            'paiementPaybox' => array()
+            'paiementPaybox' => array(),
+            'disabled' => 'disabled'
         );
 
         foreach ($echeancierAVenir as $echeanceAVenir) {
@@ -147,11 +148,13 @@ class OrderGestionPaymentManager
             $echeance['paymentMethod'] = $echeanceAVenir['payment_method'];
             $echeance['paymentTransactionId'] = $echeance['paiementPaybox']['transaction_id'];
             $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
-            $echeance['paymentAmount'] = $echeanceAVenir['payment_amount'];
+            $echeance['paymentAmount'] = number_format(($echeanceAVenir['payment_amount'] / 100), 2);
             $echeance['invoices'] = $this->paymentInvoices($echeanceAVenir['id_order']);
             $echeance['btnSubmitClass'] = $this->btnSubmitClass($echeance['paiementPaybox']);
             $echeance['btnSubmitName'] = $this->btnSubmitName($echeance['paiementPaybox']);
             $echeance['btnSubmitText'] = $this->btnSubmitText($echeance['paiementPaybox']);
+            $echeance['disabled'] = $this->disabled($order);
+            $echeance['delete'] = $this->delete($order);
 
             $echeances[] = $echeance;
         }
@@ -219,6 +222,24 @@ class OrderGestionPaymentManager
         }
 
         return $payment;
+    }
+
+    private function disabled($order)
+    {
+        if ($order['profil']['edit'] == 0) {
+            return 'disabled';
+        }
+
+        return '';
+    }
+
+    private function delete($order)
+    {
+        if ($order['profil']['delete'] == 0) {
+            return false;
+        }
+
+        return true;
     }
 
 }

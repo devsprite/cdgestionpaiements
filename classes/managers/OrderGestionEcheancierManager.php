@@ -30,7 +30,6 @@ class OrderGestionEcheancierManager
         $payments = $order->getOrderPayments();
         $paymentsNumber = count($payments);
         $resteAPayer = $order->total_paid_tax_incl - $order->total_paid_real;
-        $montantEcheances = array();
 
         if ($gestionPayment->accompte > 0 && $paymentsNumber == 0) {
             $montantEcheances = $this->calculMontantEcheancesWithAccompte($gestionPayment, $resteAPayer, $order->total_paid_tax_incl);
@@ -86,7 +85,7 @@ class OrderGestionEcheancierManager
             $echeance = new OrderGestionEcheancier();
             $echeance->id_order_gestion_payment = $gestionPayment->id_order_gestion_payment;
             $echeance->payment_date = date('Y-m-d', strtotime("+".$dateEcheance." month"));
-            $echeance->payment_amount = $montantEcheance;
+            $echeance->payment_amount = $montantEcheance * 100;
             $echeance->add();
             $dateEcheance++;
         }

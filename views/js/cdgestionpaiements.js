@@ -12,16 +12,22 @@ $(document).ready(function () {
     var loader = $(".loader");
     var divErrors = $("#cdgestion-errors");
     var pErrors = $("#cdgestion-errors-message");
+    var view = 0;
+    var add = 0;
+    var remove = 0;
+    var edit = 0;
 
     var linkOrderInformations = '';
     var linkUpdateAccompte = '';
     var linkUpdateNbrEcheance = '';
     var linkUpdateInputEcheance = '';
+    var linkGetProfil = '';
     if (typeof adminGestionPaiementsController !== 'undefined') {
         linkOrderInformations = adminGestionPaiementsController + "&action=GetOrderInformations&ajax=1";
         linkUpdateAccompte = adminGestionPaiementsController + "&action=UpdateAccompte&ajax=1";
         linkUpdateNbrEcheance = adminGestionPaiementsController + "&action=UpdateEcheance&ajax=1";
         linkUpdateInputEcheance = adminGestionPaiementsController + "&action=UpdateInputEcheance&ajax=1";
+        linkGetProfil = adminGestionPaiementsController + "&action=GetProfil&ajax=1";
     }
 
     var idOrder = 0;
@@ -46,8 +52,26 @@ $(document).ready(function () {
             updateNombreEcheance();
         }
     });
+    getProfil();
 
-    updateEcheancier();
+    function getProfil() {
+        $.ajax({
+            type: 'post',
+            url: linkGetProfil,
+            dataType: 'json',
+            data: {},
+            success: function(data) {
+                view = data.view;
+                edit = data.edit;
+                remove = data.delete;
+                add = data.add;
+                if (view == 1) {
+                    updateEcheancier();
+                    $('#cdgestion').removeClass('hidden').show();
+                }
+            }
+        });
+    }
 
     function updateNombreEcheance() {
         loader.show();
@@ -182,6 +206,8 @@ $(document).ready(function () {
             $('#gestionTBodyEcheances').change(function(evt){
                 updateInput(evt);
             });
+        } else {
+            $("#cdgestionEcheancier").html('');
         }
         $(".datepicker").datepicker();
     }
@@ -254,68 +280,4 @@ $(document).ready(function () {
         return result.toFixed(2);
     }
 
-
-
 });
-
-// var _echeancier = {
-//     echeancier:[
-//         {
-//             idEcheancier: 123,
-//             btnSubmitType: 'primary',
-//             btnSubmitName: 'submitAjouterEcheancier',
-//             btnSubmitText: 'Ajouter',
-//             paymentDate: '2017-03-01',
-//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-//             paymentTransactionId: 756981,
-//             checked:'success',
-//             paymentAmount: 53.68,
-//             invoices:[
-//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'},
-//                 {invoiceNumber:75024, invoiceFormated: '#FA075024'}
-//             ]
-//         },
-//         {
-//             idEcheancier: 124,
-//             btnSubmitType: 'primary',
-//             btnSubmitName: 'submitAjouterEcheancier',
-//             btnSubmitText: 'Valider',
-//             paymentDate: '2017-04-01',
-//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-//             paymentTransactionId: 756352,
-//             checked:'danger',
-//             paymentAmount: 53.68,
-//             invoices:[
-//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'}
-//             ]
-//         },
-//         {
-//             idEcheancier: 125,
-//             btnSubmitType: 'primary',
-//             btnSubmitName: 'submitAjouterEcheancier',
-//             btnSubmitText: 'Ajouter',
-//             paymentDate: '2017-05-01',
-//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-//             paymentTransactionId: '',
-//             checked:'',
-//             paymentAmount: 53.68,
-//             invoices:[
-//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'}
-//             ]
-//         },
-//         {
-//             idEcheancier: 126,
-//             btnSubmitType: 'primary',
-//             btnSubmitName: 'submitAjouterEcheancier',
-//             btnSubmitText: 'Valider',
-//             paymentDate: '2017-06-01',
-//             paymentMethods: [{paymentMethod:'Carte bancaire'},{paymentMethod:'Virement'}],
-//             paymentTransactionId: '',
-//             checked:'',
-//             paymentAmount: 53.68,
-//             invoices:[
-//                 {invoiceNumber:75023, invoiceFormated: '#FA075023'}
-//             ]
-//         }
-//     ]
-// };

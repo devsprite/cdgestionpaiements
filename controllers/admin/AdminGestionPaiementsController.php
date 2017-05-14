@@ -46,6 +46,12 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
     private $orderInformations = array();
 
+    public function ajaxProcessGetProfil()
+    {
+        $profil = $this->getProfile();
+
+        die(Tools::jsonEncode($profil));
+    }
 
     public function ajaxProcessGetOrderInformations()
     {
@@ -62,6 +68,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $orderGestionEcheancierManager = new OrderGestionEcheancierManager();
 
         $this->orderInformations['id_customer'] = (int)$order->id_customer;
+        $this->orderInformations['profil'] = $this->getProfile();
         $this->orderInformations['total_paid_real'] = round($order->total_paid_real, 2);
         $this->orderInformations['orders_total_paid_tax_incl'] = round($order->total_paid_tax_incl, 2);
         $this->orderInformations['order_reste_a_payer'] = $this->getResteAPayer($order);
@@ -73,7 +80,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $this->orderInformations['numberEcheancesAVenir'] = (int)$orderGestionEcheancierManager->getNumberEcheancesAVenir($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesMini'] = 1;//(int)$orderGestionPaymentManager->getNumberEcheancesMini($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesMax'] = (int)$orderGestionPaymentManager->getNumberEcheancesMax($this->orderInformations['id_order']);
-        $this->orderInformations['echeancier'] = $orderGestionPaymentManager->getEcheancier($this->orderInformations['id_order']);
+        $this->orderInformations['echeancier'] = $orderGestionPaymentManager->getEcheancier($this->orderInformations);
     }
 
     /**
@@ -152,7 +159,6 @@ class AdminGestionPaiementsController extends ModuleAdminController
     {
         $inputValues = Tools::getValue("inputValues");
         $id_order_gestion_echeancier = (int)$inputValues['id_order_gestion_echeancier'];
-        $input_name = htmlentities($inputValues['input_name']);
         $input_value = htmlspecialchars($inputValues['input_value']);
 
         $messageRetour = array('message' => '', 'error' => true);
@@ -177,7 +183,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
                     $messageRetour['message'] = "payment_transaction_id updated " . $orderEcheancier->payment_transaction_id;
                     break;
                 case "payment_amount" :
-                    $orderEcheancier->payment_amount = round((float)str_replace(",", ".", $input_value), 2);
+                    $orderEcheancier->payment_amount = (str_replace(",", ".", $input_value)) * 100;
                     $orderEcheancier->update();
                     $messageRetour['message'] = "payment_amount updated " . $orderEcheancier->payment_amount;
                     break;
@@ -226,5 +232,10 @@ class AdminGestionPaiementsController extends ModuleAdminController
             : $numberEcheances;
     }
 
+    private function getProfile()
+    {
+        $id_profile = $this->context->employee->id_profile;
 
+        return Profile::getProfileAccess($id_profile, (int)Tab::getIdFromClassName('AdminGestionPaiements'));
+    }
 }

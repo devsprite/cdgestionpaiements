@@ -1,3 +1,4 @@
+{if $employee_profile['add'] == 1}
 <script>
     var linkUpload = "{$link->getAdminLink('AdminGestionPaybox')|addslashes}&action=uploadCsv&ajax=1";
 </script>
@@ -13,3 +14,4 @@
         </div>
     </div>
 </div>
+{/if}

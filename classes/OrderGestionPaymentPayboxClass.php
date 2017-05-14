@@ -51,8 +51,8 @@ class OrderGestionPaymentPayboxClass extends ObjectModel
 
     public static function getEcheance($id_order, $paymentDate)
     {
-        $sql = "SELECT * 
-                FROM `"._DB_PREFIX_."order_gestion_payment_paybox` 
+        $sql = "SELECT *
+                FROM `"._DB_PREFIX_."order_gestion_payment_paybox`
                 WHERE id_order = " . $id_order . "
                 AND status = 'Télécollecté' ";
 

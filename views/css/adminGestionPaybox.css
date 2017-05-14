@@ -146,3 +146,15 @@ margin-right:5px;
 {
 	margin:20px 0px 20px 0px;
 }
+
+.cdgestion_checkbox {
+    padding: 6px;
+}
+
+.pay_ok {
+    background-color: #6caa36;
+}
+
+.pay_not_ok {
+    background-color: #d9534f;
+}

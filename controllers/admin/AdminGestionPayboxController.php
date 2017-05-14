@@ -27,6 +27,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 const CDGESTION_DAYS_BETWEEN_ECHEANCE = 2;
+
 require_once __DIR__ . "/../../classes/models/OrderGestionPayment.php";
 require_once __DIR__ . "/../../classes/managers/OrderGestionPaymentManager.php";
 require_once __DIR__ . "/../../classes/models/OrderGestionEcheancier.php";
@@ -46,16 +47,16 @@ class AdminGestionPayboxController extends ModuleAdminController
     {
         $this->table = 'order_gestion_payment_paybox';
         $this->identifier = 'id_order_gestion_payment_paybox';
-        $this->_orderBy = 'a!id_order_gestion_payment_paybox';
+        $this->_orderBy = 'a!date_of_issue';
         $this->_orderWay = 'DESC';
         $this->original_filter = '';
         $this->list_no_link = true;
         $this->bulk_actions = array(
             'Update' => array(
-                'text' => $this->l('Change Order Status'),
+                'text' => $this->l('Valider les paiements Paybox'),
                 'icon' => 'icon-refresh'),
             'Reset' => array(
-                'text' => 'Reset',
+                'text' => 'Reset order 57857 pour test module paiement',
                 'icon' => 'icon-eye'
             )
         );
@@ -65,46 +66,60 @@ class AdminGestionPayboxController extends ModuleAdminController
         $this->context = Context::getContext();
         $this->smarty = $this->context->smarty;
         $this->path_tpl = _PS_MODULE_DIR_ . 'cdgestionpaiements/views/templates/admin/importpaybox/';
-        $this->_select = "GROUP_CONCAT(oge.id_order_gestion_echeancier) AS id_payment ";
+        $this->_select = "GROUP_CONCAT(oge.id_order_gestion_echeancier) AS id_payment, oge.payment_amount, oge.payment_date  ";
         $this->_join .= "LEFT JOIN `" . _DB_PREFIX_ . "orders` AS o ON a.id_order = o.id_order ";
         $this->_join .= "LEFT JOIN `" . _DB_PREFIX_ . "order_gestion_payment` AS ogp ON o.id_order = ogp.id_order ";
         $this->_join .= "LEFT JOIN `" . _DB_PREFIX_ . "order_gestion_echeancier` AS oge ON ogp.id_order_gestion_payment = oge.id_order_gestion_payment ";
-        $this->_group .= "GROUP BY a.id_order_gestion_payment_paybox";
-
+        $this->_join .= "AND a.date_of_issue < (oge.payment_date + " . CDGESTION_DAYS_BETWEEN_ECHEANCE . ") ";
+        $this->_join .= "AND a.date_of_issue > (oge.payment_date - " . CDGESTION_DAYS_BETWEEN_ECHEANCE . ") ";
+        $this->_group .= "GROUP BY a.id_order_gestion_payment_paybox ";
 
         $this->fields_list = array(
-            'id_order_gestion_payment_paybox' => array(
-                'title' => 'id_order_gestion_payment_paybox',
-                'filter_key' => 'a!id_order_gestion_payment_paybox',
+            'id_order' => array(
+                'title' => 'Id Cmd',
+                'filter_key' => 'a!id_order',
+                'class' => 'col-xs-1'
             ),
             'checked' => array(
                 'title' => $this->l('Echéancier'),
                 'align' => 'text-center',
                 'type' => 'checkbox',
+                'class' => 'col-xs-1',
                 'callback' => 'getOrderGestionEcheancier',
             ),
-            'id_order' => array(
-                'title' => 'Id order',
-                'filter_key' => 'a!id_order'
+            'amount' => array(
+                'title' => '€ Paybox',
+                'callback' => 'setAmount',
+                'class' => 'text-right'
             ),
-            'id_order_payment' => array(
-                'title' => 'id_order_payment'
+            'payment_amount' => array(
+                'title' => '€ Echéance',
+                'callback' => 'setAmount',
+                'class' => 'text-right'
+            ),
+            'date_of_issue' => array(
+                'title' => 'Date Paybox',
+                'callback' => 'formatDateField'
+            ),
+            'payment_date' => array(
+                'title' => 'Date Echéance',
+                'callback' => 'formatDateField'
+            ),
+            'status' => array(
+                'title' => 'Status'
             ),
             'transaction_id' => array(
                 'title' => 'transaction_id'
             ),
-            'date_of_issue' => array(
-                'title' => 'date_of_issue'
+            'id_order_gestion_payment_paybox' => array(
+                'title' => 'id_order_gestion_payment_paybox',
+                'filter_key' => 'a!id_order_gestion_payment_paybox',
             ),
-            'amount' => array(
-                'title' => 'amount',
-                'callback' => 'setAmount'
+            'id_payment' => array(
+                'title' => 'id_payment',
             ),
-            'payment_amount' => array(
-                'title' => 'payment_amount',
-            ),
-            'status' => array(
-                'title' => 'a!status'
+            'id_order_payment' => array(
+                'title' => 'id_order_payment'
             )
         );
 
@@ -114,7 +129,8 @@ class AdminGestionPayboxController extends ModuleAdminController
     public function initContent()
     {
         $this->smarty->assign(array(
-            "test" => $this->path_tpl
+            'test' => $this->path_tpl,
+            'employee_profile' => $this->getProfile(),
         ));
         $this->html .= $this->smarty->fetch($this->path_tpl . 'importCsv.tpl');
         $this->content = $this->html;
@@ -160,9 +176,11 @@ class AdminGestionPayboxController extends ModuleAdminController
                 $echeances = OrderGestionEcheancier::getAllEcheancesAVenirByIdOrder($id_order);
                 if (count($echeances) > 0) {
                     foreach ($echeances as $echeance) {
-                        $pay_status = $this->setPaymentStatus((float)$payment['amount'], (float)$echeance['payment_amount']);
+                        $pay_status = $this->setPaymentStatus((int)$payment['amount'], (int)$echeance['payment_amount']);
                         if ($this->isExistAnEcheance($payment, $echeance) == true) {
-                            return "<input type='checkbox' name='payment_payboxBox[]' value='" . $payment['id_order_gestion_payment_paybox'] . "-" . $echeance['id_order_gestion_echeancier'] . "' checked='' class='noborder " . $pay_status . "'>";
+                            $div_start = '<div class="cdgestion_checkbox ' . $pay_status . '">';
+                            $div_end = '</div>';
+                            return $div_start . "<input type='checkbox' name='payment_payboxBox[]' value='" . $payment['id_order_gestion_payment_paybox'] . "-" . $echeance['id_order_gestion_echeancier'] . "' checked='' class='noborder " . $pay_status . "'>" . $div_end;
                         }
                     }
                 }
@@ -198,18 +216,22 @@ class AdminGestionPayboxController extends ModuleAdminController
 
     public function processBulkReset()
     {
-        $sql = "DELETE FROM `ps_order_payment` WHERE order_reference = 57857 AND transaction_id > 0";
-        DB::getInstance()->execute($sql);
+        $profil = $this->getProfile();
+        if ($profil['delete'] == 1) {
+            $sql = "DELETE FROM `ps_order_payment` WHERE order_reference = 57857 AND transaction_id > 0";
+            DB::getInstance()->execute($sql);
 
-        $sql = "UPDATE `ps_orders` SET total_paid_real = '255.75' WHERE id_order = 57857 ";
-        DB::getInstance()->execute($sql);
+            $sql = "UPDATE `ps_orders` SET total_paid_real = '255.75' WHERE id_order = 57857 ";
+            DB::getInstance()->execute($sql);
 
-        $sql = "DELETE FROM `order_gestion_echeancier` WHERE id_order_gestion_payment = 3";
-        DB::getInstance()->execute($sql);
+            $sql = "DELETE FROM `order_gestion_echeancier` WHERE id_order_gestion_payment = 3";
+            DB::getInstance()->execute($sql);
 
-        $sql = "UPDATE `ps_order_gestion_payment_paybox` SET checked = 0 WHERE id_order = 57857";
-        DB::getInstance()->execute($sql);
-
+            $sql = "UPDATE `ps_order_gestion_payment_paybox` SET checked = 0 WHERE id_order = 57857";
+            DB::getInstance()->execute($sql);
+        } else {
+            $this->errors[] = Tools::displayError('Vous n\'avez pas la permission de modifier ce contenu.');
+        }
     }
 
     public function processBulkUpdate()
@@ -255,7 +277,7 @@ class AdminGestionPayboxController extends ModuleAdminController
 
     public function setAmount($value)
     {
-        return $value / 100;
+        return number_format(($value / 100), 2) . ' €';
     }
 
     public function ajaxProcessUploadCsv()
@@ -448,7 +470,6 @@ class AdminGestionPayboxController extends ModuleAdminController
     public function setPaymentStatus($payment, $echeance)
     {
         $pay_status = "";
-        $payment = $payment / 100;
         if ($echeance == $payment) {
             $pay_status = "pay_ok";
         } else {
@@ -456,5 +477,17 @@ class AdminGestionPayboxController extends ModuleAdminController
         }
 
         return $pay_status;
+    }
+
+    private function getProfile()
+    {
+        $id_profile = $this->context->employee->id_profile;
+
+        return Profile::getProfileAccess($id_profile, (int)Tab::getIdFromClassName('AdminGestionPaybox'));
+    }
+
+    public function formatDateField($value)
+    {
+        return date('d-m-Y', strtotime($value));
     }
 }

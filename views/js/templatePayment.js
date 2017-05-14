@@ -16,14 +16,14 @@ var templatePayment = '' +
     '   <tr class="current-edit hidden-print {{checked}}">' +
     '       <td>' +
     '           <div class="input-group fixed-width-xl">' +
-    '               <input type="text" name="payment_date" class="datepicker" value="{{paymentDate}}" data-echeance-id="{{idEcheancier}}">' +
+    '               <input type="text" name="payment_date" class="datepicker" value="{{paymentDate}}" {{disabled}} data-echeance-id="{{idEcheancier}}">' +
     '               <div class="input-group-addon">' +
     '                   <i class="icon-calendar-o"></i>' +
     '               </div>' +
     '           </div>' +
     '       </td>' +
     '       <td>' +
-    '           <input name="payment_method" value="{{paymentMethod}}" list="payment_method_{{idEcheancier}}" class="payment_method" data-echeance-id="{{idEcheancier}}">' +
+    '           <input name="payment_method" value="{{paymentMethod}}" list="payment_method_{{idEcheancier}}" {{disabled}}  class="payment_method" data-echeance-id="{{idEcheancier}}">' +
     '           <datalist id="payment_method_{{idEcheancier}}">' +
     '{{#paymentMethods}}' +
     '               <option value="{{paymentMethod}}"></option>' +
@@ -31,23 +31,25 @@ var templatePayment = '' +
     '           </datalist>' +
     '       </td>' +
     '       <td>' +
-    '           <input type="text" name="payment_transaction_id" value="{{paymentTransactionId}}" class="form-control fixed-width-sm" data-echeance-id="{{idEcheancier}}">' +
+    '           <input type="text" name="payment_transaction_id" value="{{paymentTransactionId}}" {{disabled}}  class="form-control fixed-width-sm" data-echeance-id="{{idEcheancier}}">' +
     '       </td>' +
     '       <td>' +
     '           <div class="input-group col-xs-3">' +
-    '               <input type="text" name="payment_amount" value="{{paymentAmount}}" class="form-control fixed-width-sm pull-left" data-echeance-id="{{idEcheancier}}">' +
+    '               <input type="text" name="payment_amount" value="{{paymentAmount}}" {{disabled}} class="form-control fixed-width-sm pull-left" data-echeance-id="{{idEcheancier}}">' +
     '               <div class="input-group-addon">€</div>' +
     '           </div>' +
     '       </td>' +
     '       <td>' +
-    '           <select name="payment_invoice" id="" data-echeance-id="{{idEcheancier}}">' +
+    '           <select name="payment_invoice" id="" {{disabled}}  data-echeance-id="{{idEcheancier}}">' +
     '{{#invoices}}' +
     '               <option value="{{invoiceNumber}}" selected="selected">{{invoiceFormated}}</option>' +
     '{{/invoices}}' +
     '           </select>' +
     '       </td>' +
     '       <td class="actions">' +
+    '{{#delete}}' +
     '           <button class="btn btn-{{btnSubmitClass}} btn-block" type="button" name="{{btnSubmitName}}" data-echeance-id="{{idEcheancier}}">{{btnSubmitText}}</button>' +
+    '{{/delete}}' +
     '       </td>' +
     '    </tr>' +
     '{{/echeancier}}' +
