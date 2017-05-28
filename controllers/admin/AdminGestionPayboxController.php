@@ -42,6 +42,7 @@ class AdminGestionPayboxController extends ModuleAdminController
     protected $path_tpl;
     protected $original_filter;
     protected $headerCsv = "RemittancePaybox;Bank;Site;Rank;ShopName;IdPaybox;Date;TransactionId;IdAppel;DateOfIssue;HourOfIssue";
+    private $idOrder = 57857;
 
     public function __construct()
     {
@@ -56,7 +57,7 @@ class AdminGestionPayboxController extends ModuleAdminController
                 'text' => $this->l('Valider les paiements Paybox'),
                 'icon' => 'icon-refresh'),
             'Reset' => array(
-                'text' => 'Reset order 57857 pour test module paiement',
+                'text' => 'Reset order '.$this->idOrder.' pour test module paiement',
                 'icon' => 'icon-eye'
             )
         );
@@ -78,49 +79,62 @@ class AdminGestionPayboxController extends ModuleAdminController
             'id_order' => array(
                 'title' => 'Id Cmd',
                 'filter_key' => 'a!id_order',
-                'class' => 'col-xs-1'
+                'align' => 'text-center',
+                'class' => 'fixed-width-xs'
             ),
             'checked' => array(
                 'title' => $this->l('Echéancier'),
                 'align' => 'text-center',
                 'type' => 'checkbox',
-                'class' => 'col-xs-1',
+                'class' => 'fixed-width-xs',
                 'callback' => 'getOrderGestionEcheancier',
+            ),
+            'id_order_payment' => array(
+                'title' => $this->l('Status'),
+                'align' => 'text-center',
+                'class' => 'fixed-width-md',
+                'callback' => 'statusEcheancier',
             ),
             'amount' => array(
                 'title' => '€ Paybox',
                 'callback' => 'setAmount',
-                'class' => 'text-right'
+                'align' => 'text-right',
+                'class' => 'fixed-width-xs'
             ),
             'payment_amount' => array(
                 'title' => '€ Echéance',
                 'callback' => 'setAmount',
-                'class' => 'text-right'
+                'align' => 'text-right',
+                'class' => 'fixed-width-xs'
             ),
             'date_of_issue' => array(
                 'title' => 'Date Paybox',
-                'callback' => 'formatDateField'
+                'callback' => 'formatDateField',
+                'align' => 'text-center',
+                'class' => 'fixed-width-sm'
             ),
             'payment_date' => array(
                 'title' => 'Date Echéance',
-                'callback' => 'formatDateField'
+                'callback' => 'formatDateField',
+                'align' => 'text-center',
+                'class' => 'fixed-width-sm'
             ),
             'status' => array(
-                'title' => 'Status'
+                'title' => 'Status',
+                'align' => 'text-right',
+                'class' => 'fixed-width-sm'
             ),
             'transaction_id' => array(
-                'title' => 'transaction_id'
+                'title' => 'transaction_id',
+                'align' => 'text-right',
+                'class' => 'fixed-width-sm'
             ),
-            'id_order_gestion_payment_paybox' => array(
-                'title' => 'id_order_gestion_payment_paybox',
-                'filter_key' => 'a!id_order_gestion_payment_paybox',
+            'reference' => array(
+                'title' => 'Commande',
+                'callback' => 'linkOrder',
+                'align' => 'text-center',
+                'class' => 'fixed-width-sm'
             ),
-            'id_payment' => array(
-                'title' => 'id_payment',
-            ),
-            'id_order_payment' => array(
-                'title' => 'id_order_payment'
-            )
         );
 
         parent::__construct();
@@ -136,6 +150,13 @@ class AdminGestionPayboxController extends ModuleAdminController
         $this->content = $this->html;
 
         parent::initContent();
+    }
+
+    private function getProfile()
+    {
+        $id_profile = $this->context->employee->id_profile;
+
+        return Profile::getProfileAccess($id_profile, (int)Tab::getIdFromClassName('AdminGestionPaybox'));
     }
 
     public function renderList()
@@ -166,6 +187,37 @@ class AdminGestionPayboxController extends ModuleAdminController
         parent::setMedia();
     }
 
+    public function linkOrder($value, $params)
+    {
+        $linkController =  Context::getContext()->link->getAdminLink('AdminOrders');
+        $link = '<a href="'.$linkController.'&id_order='.$params['id_order'].'&vieworder" class="btn btn-primary"><i class="icon-eye"></i>&nbsp;Voir</a>';
+        return $link;
+    }
+
+    public function statusEcheancier($value, $params)
+    {
+        $calendar ='';
+        $euro ='';
+        $class_euro = 'text-danger';
+        $class_calendar = 'text-danger';
+        if ($params['status'] == 'Télécollecté' && !empty($params['payment_date']) && !empty($params['payment_amount']))  {
+            if (!empty($params['date_of_issue']) && !empty($params['payment_date'])) {
+                if ($params['date_of_issue'] === $params['payment_date']) {
+                    $class_calendar = 'text-success';
+                }
+            }
+            if (!empty($params['payment_amount']) && !empty($params['amount'])) {
+                if ($params['payment_amount'] === $params['amount']) {
+                    $class_euro = 'text-success';
+                }
+            }
+            $calendar = '<i class="icon-calendar ' . $class_calendar . '" title = "Date"></i>';
+            $euro = '<i class="icon-euro ' . $class_euro . '" title = "Montant"></i>';
+        }
+
+        return $calendar . '&nbsp;&nbsp;&nbsp;' . $euro;
+    }
+
     public function getOrderGestionEcheancier($value, $payment)
     {
         if ($payment['status'] == 'Télécollecté') {
@@ -177,10 +229,11 @@ class AdminGestionPayboxController extends ModuleAdminController
                 if (count($echeances) > 0) {
                     foreach ($echeances as $echeance) {
                         $pay_status = $this->setPaymentStatus((int)$payment['amount'], (int)$echeance['payment_amount']);
+                        $checked = ($pay_status == 'pay_ok') ? 'checked' : '';
                         if ($this->isExistAnEcheance($payment, $echeance) == true) {
-                            $div_start = '<div class="cdgestion_checkbox ' . $pay_status . '">';
-                            $div_end = '</div>';
-                            return $div_start . "<input type='checkbox' name='payment_payboxBox[]' value='" . $payment['id_order_gestion_payment_paybox'] . "-" . $echeance['id_order_gestion_echeancier'] . "' checked='' class='noborder " . $pay_status . "'>" . $div_end;
+                            $div_start = '<label class="cdgestion_checkbox ' . $pay_status . '">';
+                            $div_end = '</label>';
+                            return $div_start . "<input type='checkbox' name='payment_payboxBox[]' value='" . $payment['id_order_gestion_payment_paybox'] . "-" . $echeance['id_order_gestion_echeancier'] . "' " . $checked . " class='noborder " . $pay_status . "'>" . $div_end;
                         }
                     }
                 }
@@ -188,6 +241,23 @@ class AdminGestionPayboxController extends ModuleAdminController
         }
 
         return false;
+    }
+
+    /**
+     * @param $payment
+     * @param $echeance
+     * @return string
+     */
+    public function setPaymentStatus($payment, $echeance)
+    {
+        $pay_status = "";
+        if ($echeance == $payment) {
+            $pay_status = "pay_ok";
+        } else {
+            $pay_status = "pay_not_ok";
+        }
+
+        return $pay_status;
     }
 
     /**
@@ -218,16 +288,22 @@ class AdminGestionPayboxController extends ModuleAdminController
     {
         $profil = $this->getProfile();
         if ($profil['delete'] == 1) {
-            $sql = "DELETE FROM `ps_order_payment` WHERE order_reference = 57857 AND transaction_id > 0";
+            $sql = "DELETE FROM `ps_order_payment` WHERE order_reference = '".$this->idOrder."'";
             DB::getInstance()->execute($sql);
 
-            $sql = "UPDATE `ps_orders` SET total_paid_real = '255.75' WHERE id_order = 57857 ";
+            $sql = "UPDATE `ps_orders` SET total_paid_real = '120' WHERE id_order = '".$this->idOrder."' ";
             DB::getInstance()->execute($sql);
 
-            $sql = "DELETE FROM `order_gestion_echeancier` WHERE id_order_gestion_payment = 3";
+            $sql = "SELECT id_order_gestion_payment FROM `ps_order_gestion_payment` WHERE id_order = '".$this->idOrder."'";
+            $id_gestion_payment = DB::getInstance()->getValue($sql);
+
+            $sql = "DELETE FROM `ps_order_gestion_payment` WHERE id_order_gestion_payment = " . $id_gestion_payment;
             DB::getInstance()->execute($sql);
 
-            $sql = "UPDATE `ps_order_gestion_payment_paybox` SET checked = 0 WHERE id_order = 57857";
+            $sql = "DELETE FROM `order_gestion_echeancier` WHERE id_order_gestion_payment = " . $id_gestion_payment;
+            DB::getInstance()->execute($sql);
+
+            $sql = "UPDATE `ps_order_gestion_payment_paybox` SET checked = 0 WHERE id_order = '".$this->idOrder."'";
             DB::getInstance()->execute($sql);
         } else {
             $this->errors[] = Tools::displayError('Vous n\'avez pas la permission de modifier ce contenu.');
@@ -273,6 +349,26 @@ class AdminGestionPayboxController extends ModuleAdminController
         }
 
         return $payment['id_order_payment'];
+    }
+
+    public function getInvoiceId($order_number)
+    {
+        if (!$order_number)
+            return false;
+
+        return Db::getInstance()->getValue('
+			SELECT `id_order_invoice`
+			FROM `' . _DB_PREFIX_ . 'order_invoice`
+			WHERE `number` = ' . $order_number
+        );
+    }
+
+    public function getByOrderIdTransaction($order_reference)
+    {
+        return Db::getInstance()->getRow('
+			SELECT *
+			FROM `' . _DB_PREFIX_ . 'order_payment`
+			WHERE `transaction_id` = \'' . pSQL($order_reference) . '\'');
     }
 
     public function setAmount($value)
@@ -440,50 +536,6 @@ class AdminGestionPayboxController extends ModuleAdminController
         $year = $arrayDate[2];
 
         return $year . '-' . $month . '-' . $day;
-    }
-
-    public function getInvoiceId($order_number)
-    {
-        if (!$order_number)
-            return false;
-
-        return Db::getInstance()->getValue('
-			SELECT `id_order_invoice`
-			FROM `' . _DB_PREFIX_ . 'order_invoice`
-			WHERE `number` = ' . $order_number
-        );
-    }
-
-    public function getByOrderIdTransaction($order_reference)
-    {
-        return Db::getInstance()->getRow('
-			SELECT *
-			FROM `' . _DB_PREFIX_ . 'order_payment`
-			WHERE `transaction_id` = \'' . pSQL($order_reference) . '\'');
-    }
-
-    /**
-     * @param $payment
-     * @param $echeance
-     * @return string
-     */
-    public function setPaymentStatus($payment, $echeance)
-    {
-        $pay_status = "";
-        if ($echeance == $payment) {
-            $pay_status = "pay_ok";
-        } else {
-            $pay_status = "pay_not_ok";
-        }
-
-        return $pay_status;
-    }
-
-    private function getProfile()
-    {
-        $id_profile = $this->context->employee->id_profile;
-
-        return Profile::getProfileAccess($id_profile, (int)Tab::getIdFromClassName('AdminGestionPaybox'));
     }
 
     public function formatDateField($value)

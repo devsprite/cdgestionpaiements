@@ -2,28 +2,7 @@
 
 class OrderGestionPaymentPayboxClass extends ObjectModel
 {
-    public $id_order_gestion_payment_paybox;
-
-    public $id_order;
-
-    public $id_order_gestion_echeancier;
-
-    public $id_order_payment;
-
-    public $transaction_id;
-
-    public $date_of_issue;
-
-    public $reference;
-
-    public $amount;
-
-    public $status;
-
-    public $checked;
-
     const CDGESTION_DAYS_BETWEEN_ECHEANCE = 2;
-
     public static $definition = array(
         'table' => 'order_gestion_payment_paybox',
         'primary' => 'id_order_gestion_payment_paybox',
@@ -39,11 +18,21 @@ class OrderGestionPaymentPayboxClass extends ObjectModel
             'checked' => array('type' => self::TYPE_BOOL, 'validate' => 'isBool'),
         )
     );
+    public $id_order_gestion_payment_paybox;
+    public $id_order;
+    public $id_order_gestion_echeancier;
+    public $id_order_payment;
+    public $transaction_id;
+    public $date_of_issue;
+    public $reference;
+    public $amount;
+    public $status;
+    public $checked;
 
     public static function echeanceIsChecked($id_order_gestion_echeancier)
     {
-        $sql = "SELECT COUNT(*) FROM `"._DB_PREFIX_."order_gestion_payment_paybox`
-                WHERE id_order_gestion_echeancier = ".(int)$id_order_gestion_echeancier;
+        $sql = "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "order_gestion_payment_paybox`
+                WHERE id_order_gestion_echeancier = " . (int)$id_order_gestion_echeancier;
         $req = DB::getInstance()->getValue($sql);
 
         return (bool)$req;
@@ -52,9 +41,11 @@ class OrderGestionPaymentPayboxClass extends ObjectModel
     public static function getEcheance($id_order, $paymentDate)
     {
         $sql = "SELECT *
-                FROM `"._DB_PREFIX_."order_gestion_payment_paybox`
+                FROM `" . _DB_PREFIX_ . "order_gestion_payment_paybox`
                 WHERE id_order = " . $id_order . "
-                AND status = 'Télécollecté' ";
+                AND status = 'Télécollecté' 
+                AND checked = 0
+                ";
 
         $payments = DB::getInstance()->executeS($sql);
 
@@ -80,12 +71,24 @@ class OrderGestionPaymentPayboxClass extends ObjectModel
         $datePaymentPaybox = new DateTime($payment);
         $dateEcheanceOrder = new DateTime($echeance);
         $dayBetweenEcheance = $datePaymentPaybox->diff($dateEcheanceOrder);
-
         if ($dayBetweenEcheance->days < self::CDGESTION_DAYS_BETWEEN_ECHEANCE) {
             return true;
         }
 
         return false;
+    }
+
+    public static function getEcheanceByIdTransaction($idTransaction)
+    {
+        if (!empty((int)$idTransaction)) {
+            $sql = "SELECT * FROM `" . _DB_PREFIX_ . "order_gestion_payment_paybox`
+                WHERE transaction_id = '" . (int)$idTransaction . "' ";
+            $req = DB::getInstance()->getRow($sql);
+
+            return new OrderGestionPaymentPayboxClass($req['id_order_gestion_payment_paybox']);
+        }
+        return null;
+
     }
 
 }

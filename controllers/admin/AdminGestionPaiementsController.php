@@ -35,7 +35,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
 {
     const CDGESTION_ACCOMPTE_MINI = 20;
     const CDGESTION_ACCOMPTE_POURCENTAGE_MINI = 0.1;
-    const CDGESTION_NUMBER_ECHEANCE_DEFAULT = 4;
+    const CDGESTION_NUMBER_ECHEANCE_DEFAULT = 1;
     const CDGESTION_PAYMENT_METHOD = array(
         array('paymentMethod' => 'Carte Bancaire'),
         array('paymentMethod' => 'Chèque'),
@@ -69,6 +69,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
         $this->orderInformations['id_customer'] = (int)$order->id_customer;
         $this->orderInformations['profil'] = $this->getProfile();
+        $this->orderInformations['valid'] = $order->valid;
         $this->orderInformations['total_paid_real'] = round($order->total_paid_real, 2);
         $this->orderInformations['orders_total_paid_tax_incl'] = round($order->total_paid_tax_incl, 2);
         $this->orderInformations['order_reste_a_payer'] = $this->getResteAPayer($order);
@@ -78,7 +79,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $this->orderInformations['numberEcheancesTotal'] = (int)$orderGestionPaymentManager->getNumberEcheancesTotalByOrder($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesPayed'] = (int)$orderGestionPaymentManager->getNumberEcheancesPayed($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesAVenir'] = (int)$orderGestionEcheancierManager->getNumberEcheancesAVenir($this->orderInformations['id_order']);
-        $this->orderInformations['numberEcheancesMini'] = 1;//(int)$orderGestionPaymentManager->getNumberEcheancesMini($this->orderInformations['id_order']);
+        $this->orderInformations['numberEcheancesMini'] = 0;//(int)$orderGestionPaymentManager->getNumberEcheancesMini($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesMax'] = (int)$orderGestionPaymentManager->getNumberEcheancesMax($this->orderInformations['id_order']);
         $this->orderInformations['echeancier'] = $orderGestionPaymentManager->getEcheancier($this->orderInformations);
     }
@@ -94,8 +95,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
         $orderGestionPaymentManager = new OrderGestionPaymentManager();
         $orderGestionPaymentManager->updateEcheance($id_order, $numberEcheances);
-
-
+        
         if (empty($id_order)) {
             die(Tools::jsonEncode(array("message" => "id_order is empty", "error" => true)));
         }
@@ -158,10 +158,11 @@ class AdminGestionPaiementsController extends ModuleAdminController
     public function ajaxProcessUpdateInputEcheance()
     {
         $inputValues = Tools::getValue("inputValues");
+        $inputValues['input_name'] = (!empty($inputValues['input_name']) ? $inputValues['input_name'] : $inputValues['data-name']);
         $id_order_gestion_echeancier = (int)$inputValues['id_order_gestion_echeancier'];
         $input_value = htmlspecialchars($inputValues['input_value']);
-
         $messageRetour = array('message' => '', 'error' => true);
+
         if (!empty($id_order_gestion_echeancier)) {
             $orderEcheancier = new OrderGestionEcheancier($id_order_gestion_echeancier);
 
@@ -187,9 +188,13 @@ class AdminGestionPaiementsController extends ModuleAdminController
                     $orderEcheancier->update();
                     $messageRetour['message'] = "payment_amount updated " . $orderEcheancier->payment_amount;
                     break;
-                case "gestionSubmitDelete":
+                case "Supprimer":
                     $orderEcheancier->delete();
                     $messageRetour['message'] = "Echeance deleted " . $input_value;
+                    break;
+                case "Valider":
+                    $messageRetour['message'] = "Echéance Validé";
+                    $orderEcheancier->ValiderEcheance($inputValues);
                     break;
                 default:
                     $messageRetour['message'] = "Il n'y a pas de valeur correspondante.";

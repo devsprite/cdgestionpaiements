@@ -16,7 +16,9 @@ $(document).ready(function () {
     var add = 0;
     var remove = 0;
     var edit = 0;
-
+    var valid = 0;
+    var profil;
+    var echeancier = {echeancier:[]};
     var linkOrderInformations = '';
     var linkUpdateAccompte = '';
     var linkUpdateNbrEcheance = '';
@@ -35,7 +37,7 @@ $(document).ready(function () {
         idOrder = id_order;
     }
 
-    var echeancier = {echeancier:[]};
+
 
     $("#getOrderInformation").click(function () {
         loader.show();
@@ -174,6 +176,8 @@ $(document).ready(function () {
         numberEcheancesMax = data.numberEcheancesMax;
         accompte = data.accompte;
         accompteMini = data.accompteMini;
+        valid = data.valid;
+        profil = data.profil;
         echeancier = {echeancier:data.echeancier};
 
         updateDisplay();
@@ -199,7 +203,7 @@ $(document).ready(function () {
             var rendered = Mustache.render(templatePayment, echeancier);
             $("#cdgestionEcheancier").html(rendered);
             $("#gestionTBodyEcheances").click(function(evt) {
-                if("button" == evt.target.type) {
+                if("button" == evt.target.type || "icon-trash" == evt.target.className || "icon-check" == evt.target.className) {
                     updateInput(evt);
                 }
             });
@@ -216,14 +220,23 @@ $(document).ready(function () {
         var inputEcheanceValues = {
             'id_order_gestion_echeancier': $(evt.target).data("echeance-id"),
             'input_name': evt.target.name,
+            'data-name': $(evt.target).data("name"),
+            'data-echeance-id' : $(evt.target).data("echeance-id"),
+            'data-transaction-id' : $(evt.target).data("transaction-id"),
             'input_value': evt.target.value
         };
+        console.log(inputEcheanceValues);
         updateInputEcheance(inputEcheanceValues);
     }
 
     function displayAccompte() {
-        if (numberEcheancesMini >= 1) {
+        if (valid == 1 && profil.id_profile != 1) {
             $(".gestion-accompte").hide();
+            $(".gestion-inputs").hide();
+        } else {
+            $(".gestion-accompte").show();
+            $(".gestion-inputs").show();
+
         }
     }
 

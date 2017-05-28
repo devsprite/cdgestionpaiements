@@ -148,13 +148,27 @@ margin-right:5px;
 }
 
 .cdgestion_checkbox {
-    padding: 6px;
+    padding: 7px 6px 3px 6px;
 }
 
 .pay_ok {
     background-color: #6caa36;
+    transform: scale(1.1);
 }
 
 .pay_not_ok {
     background-color: #d9534f;
+    transform: scale(1.1);
+}
+
+.icon-calendar:before {
+    font-size: large;
+}
+
+.icon-euro:before {
+    font-size: large;
+}
+
+.bootstrap label {
+    border-radius: 4px;
 }

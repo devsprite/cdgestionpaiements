@@ -4,7 +4,10 @@ $(document).ready(function()
         url:linkUpload,
         fileName:"csvPaybox",
         allowedTypes:"zip",
-        redirect:"localhost"
+        redirect:"localhost",
+        uploadStr:"Uploader votre fichier Paybox",
+        dragDropStr: "<span><b>Glisser déposer</b></span>",
+        abortStr: "Annuler",
 
     });
 });

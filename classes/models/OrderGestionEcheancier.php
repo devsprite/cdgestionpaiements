@@ -68,7 +68,60 @@ class OrderGestionEcheancier extends ObjectModel
                 ORDER BY ogpe.payment_date ASC";
 
         $req = Db::getInstance()->executeS($sql);
-
         return $req;
+    }
+
+    public static function getAllEcheancesByIdOrder($id_order)
+    {
+        $sql = "SELECT ogpe.*, ogp.*
+                FROM `"._DB_PREFIX_."order_gestion_payment` as ogp
+                LEFT JOIN `"._DB_PREFIX_."order_gestion_echeancier` as ogpe 
+                ON ogp.id_order_gestion_payment = ogpe.id_order_gestion_payment 
+                WHERE ogp.id_order = ".(int)$id_order."
+                ORDER BY ogpe.payment_date ASC";
+
+        $req = Db::getInstance()->executeS($sql);
+        return $req;
+    }
+
+    public function ValiderEcheance($inputValues)
+    {
+        $isOk = false;
+        $echeance = new OrderGestionEcheancier($inputValues['id_order_gestion_echeancier']);
+        $echeancePaybox = OrderGestionPaymentPayboxClass::getEcheanceByIdTransaction($inputValues['data-transaction-id']);
+        $idOrder = $this->getIdOrderByIdEcheancier($echeance->id_order_gestion_echeancier);
+        $order = new Order($idOrder);
+        $invoice = new OrderInvoice($this->getInvoiceId($order->invoice_number));
+
+        $isOk = $order->addOrderPayment(
+            ($echeance->payment_amount/100 ),
+            $echeance->payment_method,
+            $echeance->payment_transaction_id,
+            null,
+            $echeance->payment_date,
+            $invoice);
+
+        if ($isOk) {
+            $echeance->payed = 1;
+            $echeance->save();
+            if ($echeancePaybox != null) {
+                $echeancePaybox->checked = 1;
+                $echeancePaybox->save();
+            }
+        }
+
+        return $isOk;
+    }
+
+    public function getInvoiceId($order_number)
+    {
+        if (!$order_number)
+            return null;
+
+        return Db::getInstance()->getValue('
+			SELECT `id_order_invoice`
+			FROM `'._DB_PREFIX_.'order_invoice`
+			WHERE `number` = '.$order_number
+        );
     }
 }

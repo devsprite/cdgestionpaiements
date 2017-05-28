@@ -4,6 +4,12 @@ require_once __DIR__ . "/../../classes/OrderGestionPaymentPayboxClass.php";
 
 class OrderGestionPaymentManager
 {
+    public function __construct()
+    {
+        $this->context = Context::getContext();
+    }
+
+
     public function updateAccompte($id_order, $accompte)
     {
         $isOk = true;
@@ -137,54 +143,33 @@ class OrderGestionPaymentManager
             'paymentAmount' => '0',
             'invoices' => array(array()),
             'paiementPaybox' => array(),
-            'disabled' => 'disabled'
+            'disabled' => 'disabled',
+            'delete' => 'false',
+            'valider' => 'false'
         );
-
         foreach ($echeancierAVenir as $echeanceAVenir) {
             $echeance['idEcheancier'] = $echeanceAVenir['id_order_gestion_echeancier'];
-            $echeance['paiementPaybox'] = $this->getPaymentPaybox($echeance);
             $echeance['paymentDate'] = $echeanceAVenir['payment_date'];
+            $echeance['paiementPaybox'] = $this->getPaymentPaybox($echeance);
             $echeance['paymentMethods'] = AdminGestionPaiementsController::CDGESTION_PAYMENT_METHOD;
             $echeance['paymentMethod'] = $echeanceAVenir['payment_method'];
             $echeance['paymentTransactionId'] = $echeance['paiementPaybox']['transaction_id'];
             $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
             $echeance['paymentAmount'] = number_format(($echeanceAVenir['payment_amount'] / 100), 2);
             $echeance['invoices'] = $this->paymentInvoices($echeanceAVenir['id_order']);
-            $echeance['btnSubmitClass'] = $this->btnSubmitClass($echeance['paiementPaybox']);
-            $echeance['btnSubmitName'] = $this->btnSubmitName($echeance['paiementPaybox']);
-            $echeance['btnSubmitText'] = $this->btnSubmitText($echeance['paiementPaybox']);
             $echeance['disabled'] = $this->disabled($order);
             $echeance['delete'] = $this->delete($order);
+            $echeance['valider'] = $this->valider($order, $echeanceAVenir);
+
+            $echeanceTmp = new OrderGestionEcheancier($echeance['idEcheancier']);
+            $echeanceTmp->payment_transaction_id = $echeance['paymentTransactionId'];
+            $echeanceTmp->save();
 
             $echeances[] = $echeance;
         }
 
 
         return $echeances;
-    }
-
-    private function btnSubmitClass($echeance)
-    {
-        if (isset($echeance['checked']) && empty($echeance['checked']) ) {
-            return 'success';
-        }
-        return 'danger';
-    }
-
-    private function btnSubmitName($echeance)
-    {
-        if (isset($echeance['checked']) && empty($echeance['checked']) ) {
-            return 'gestionSubmitValider';
-        }
-        return 'gestionSubmitDelete';
-    }
-
-    private function btnSubmitText($echeance)
-    {
-        if (isset($echeance['checked']) && empty($echeance['checked']) ) {
-            return 'Valider';
-        }
-        return 'Supprimer';
     }
 
     private function paymentIsChecked($id_order_gestion_echeancier)
@@ -226,7 +211,9 @@ class OrderGestionPaymentManager
 
     private function disabled($order)
     {
-        if ($order['profil']['edit'] == 0) {
+        $order_ = new Order($order['id_order']);
+        $valid = $order_->valid;
+        if (($order['profil']['edit'] == 0 || ($order['profil']['edit'] == 0 && $valid == 1)) && $order['profil']['id_profile'] != 1) {
             return 'disabled';
         }
 
@@ -235,11 +222,31 @@ class OrderGestionPaymentManager
 
     private function delete($order)
     {
-        if ($order['profil']['delete'] == 0) {
+        $order_ = new Order($order['id_order']);
+        $valid = $order_->valid;
+        if ((($order['profil']['delete'] == 0 || ($order['profil']['delete'] == 1 && $valid == 0)) && $order['profil']['id_profile'] != 1)) {
             return false;
         }
-
         return true;
+    }
+
+    private function valider($order, $echeance)
+    {
+        $return = false;
+        $order_ = new Order($order['id_order']);
+        $valid = $order_->valid;
+        if ((($order['profil']['add'] == 0 || ($order['profil']['add'] == 1 && $valid == 0)) && $order['profil']['id_profile'] != 1)) {
+            $return = false;
+        } else {
+//            $echeancePaybox = OrderGestionPaymentPayboxClass::getEcheance($order['id_order'], $echeance['payment_date']);
+//            if($echeancePaybox !== false) {
+//                if($echeancePaybox['amount'] === $echeance['payment_amount']) {
+                    $return = true;
+//                }
+//            }
+        }
+
+        return $return;
     }
 
 }

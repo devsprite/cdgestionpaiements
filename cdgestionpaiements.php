@@ -27,6 +27,8 @@
 if (!defined('_PS_VERSION_'))
     exit;
 
+require_once __DIR__ . "/classes/models/OrderGestionEcheancier.php";
+
 class Cdgestionpaiements extends Module
 {
 
@@ -54,6 +56,7 @@ class Cdgestionpaiements extends Module
     {
         if (!parent::install() OR
             !$this->registerHook('DisplayBackOfficeHeader') OR
+            !$this->registerHook('ActionPDFInvoiceRender') OR
             !$this->installAdminController() OR
             !$this->installAdminImportPayboxController() OR
             !$this->createTableOrderGestionPayment() OR
@@ -102,7 +105,7 @@ class Cdgestionpaiements extends Module
                  `payment_date` DATE NOT NULL DEFAULT '0000-00-00' ,
                  `payment_method` VARCHAR(255) NOT NULL ,
                  `payment_transaction_id` INT NOT NULL DEFAULT '0' ,
-                 `payment_amount` DECIMAL(10,2) NOT NULL DEFAULT '0.00' ,
+                 `payment_amount` INT NOT NULL DEFAULT '0' ,
                  `payed` TINYINT NOT NULL DEFAULT '0' ,
                  `id_employee` INT NOT NULL DEFAULT '0' ,
                  PRIMARY KEY (`id_order_gestion_echeancier`)) 
@@ -215,7 +218,11 @@ class Cdgestionpaiements extends Module
         }
     }
 
-    // TODO Faire apparaitre la validation dans la commande si un paiement paybox correspond
-    // TODO Corriger la fonction reset pour faire les tests, il faut qu'elle efface le paiement
-    // TODO Pouvoir ajouter un paiement dans la commande
+    public function hookActionPDFInvoiceRender()
+    {
+        $idOrder = Tools::getValue('id_order');
+        $echeances = OrderGestionEcheancier::getAllEcheancesByIdOrder($idOrder);
+        $context = Context::getContext();
+        $context->smarty->assign(array('echeances' => $echeances));
+    }
 }

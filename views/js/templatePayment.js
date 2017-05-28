@@ -9,6 +9,7 @@ var templatePayment = '' +
     '       <th><span class="title_box ">Montant</span></th>' +
     '       <th><span class="title_box ">Facture</span></th>' +
     '       <th></th>' +
+    '       <th></th>' +
     '   </tr>' +
     '</thead>' +
     '<tbody id="gestionTBodyEcheances">' +
@@ -48,8 +49,13 @@ var templatePayment = '' +
     '       </td>' +
     '       <td class="actions">' +
     '{{#delete}}' +
-    '           <button class="btn btn-{{btnSubmitClass}} btn-block" type="button" name="{{btnSubmitName}}" data-echeance-id="{{idEcheancier}}">{{btnSubmitText}}</button>' +
+    '           <button class="btn btn-danger btn-block" type="button" name="Supprimer" title="Supprimer" data-echeance-id="{{idEcheancier}}">&nbsp;<i class="icon-trash" data-echeance-id="{{idEcheancier}}" data-name="Supprimer">&nbsp;</i></button>' +
     '{{/delete}}' +
+    '       </td>' +
+    '       <td class="actions">' +
+    '{{#valider}}' +
+    '           <button class="btn btn-success btn-block" type="button" name="Valider" title="Valider" data-echeance-id="{{idEcheancier}}" data-transaction-id="{{paymentTransactionId}}">&nbsp;<i class="icon-check" data-echeance-id="{{idEcheancier}}" data-transaction-id="{{paymentTransactionId}}" data-name="Valider">&nbsp;</i></button>' +
+    '{{/valider}}' +
     '       </td>' +
     '    </tr>' +
     '{{/echeancier}}' +
