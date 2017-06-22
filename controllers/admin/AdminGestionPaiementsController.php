@@ -74,7 +74,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $this->orderInformations['orders_total_paid_tax_incl'] = round($order->total_paid_tax_incl, 2);
         $this->orderInformations['order_reste_a_payer'] = $this->getResteAPayer($order);
         $this->orderInformations['paymentsNumber'] = $this->getPaymentsNumber($order);
-        $this->orderInformations['accompte'] = (float)$orderGestionPaymentManager->getAccompteByOrder($this->orderInformations['id_order']);
+        $this->orderInformations['accompte'] = $orderGestionPaymentManager->getAccompteByOrder($this->orderInformations['id_order']) / 100;
         $this->orderInformations['accompteMini'] = self::CDGESTION_ACCOMPTE_MINI;
         $this->orderInformations['numberEcheancesTotal'] = (int)$orderGestionPaymentManager->getNumberEcheancesTotalByOrder($this->orderInformations['id_order']);
         $this->orderInformations['numberEcheancesPayed'] = (int)$orderGestionPaymentManager->getNumberEcheancesPayed($this->orderInformations['id_order']);
@@ -89,7 +89,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
      */
     public function ajaxProcessUpdateAccompte()
     {
-        $accompte = (float)Tools::getValue("accompte");
+        $accompte = (float)Tools::getValue("accompte") / 100;
         $numberEcheances = $this->nombreEcheance((int)Tools::getValue("number_echeance"));
         $id_order = (int)Tools::getValue("id_order");
 
@@ -102,12 +102,17 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
         $order = new Order($id_order);
         $orderResteAPayer = $order->total_paid_tax_incl - $order->total_paid_real;
-
-        if (($accompte != 0) && (($accompte < self::CDGESTION_ACCOMPTE_MINI) || ($accompte > $orderResteAPayer))) {
-            die(Tools::jsonEncode(array("message" => $accompte . "L'accompte doit être compris entre " . self::CDGESTION_ACCOMPTE_MINI . " € et " . $orderResteAPayer . "€", "error" => true)));
+        $dixPourcentTotal = round(($order->total_paid_tax_incl * 0.1),2);
+        $accompteMini = self::CDGESTION_ACCOMPTE_MINI;
+        if(self::CDGESTION_ACCOMPTE_MINI < $dixPourcentTotal) {
+            $accompteMini = $dixPourcentTotal;
         }
 
-        $isOk = $orderGestionPaymentManager->updateAccompte($id_order, $accompte);
+        if (($accompte != 0) && (($accompte < $accompteMini) || ($accompte > $orderResteAPayer))) {
+            die(Tools::jsonEncode(array("message" => "L'accompte doit être compris entre " . $accompteMini . " € et " . $orderResteAPayer . "€", "error" => true)));
+        }
+
+        $isOk = $orderGestionPaymentManager->updateAccompte($id_order, ($accompte*100));
         if ($isOk) {
             $orderGestionEcheancierManager = new OrderGestionEcheancierManager();
             $isOk = $orderGestionEcheancierManager->createEcheances($id_order);
@@ -184,7 +189,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
                     $messageRetour['message'] = "payment_transaction_id updated " . $orderEcheancier->payment_transaction_id;
                     break;
                 case "payment_amount" :
-                    $orderEcheancier->payment_amount = (str_replace(",", ".", $input_value)) * 100;
+                    $orderEcheancier->payment_amount = (str_replace(",", ".", ($input_value * 100 )));
                     $orderEcheancier->update();
                     $messageRetour['message'] = "payment_amount updated " . $orderEcheancier->payment_amount;
                     break;

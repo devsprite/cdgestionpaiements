@@ -105,19 +105,26 @@ $(document).ready(function () {
 
     $('#accompte').change(function (evt) {
         accompte = formatNumber(evt.target.value);
-        console.log(accompte);
-        if (accompte == "0.00") {
-            updateAccompte();
-        } else if ((accompte > order_reste_a_payer) || (accompte < accompteMini)) {
-            pErrors.text("l'accompte doit être compris entre " + accompteMini + " € et " + order_reste_a_payer + " €");
-            divErrors.show();
-        } else {
-            updateAccompte();
+        console.log(orders_total_paid_tax_incl);
+        dixPourcentTotal = formatNumber(orders_total_paid_tax_incl * 0.1);
+
+        if(accompteMini < dixPourcentTotal) {
+            accompteMini = dixPourcentTotal;
         }
+        updateAccompte();
+        // if (accompte == "0.00") {
+        //     updateAccompte();
+        // } else if ((accompte > order_reste_a_payer) || (accompte < accompteMini)) {
+        //     pErrors.text("l'accompte doit être compris entre " + accompteMini + " € et " + order_reste_a_payer + " €");
+        //     divErrors.show();
+        // } else {
+        //     updateAccompte();
+        // }
     });
 
     function updateAccompte() {
         loader.show();
+        accompte = accompte * 100;
         $.ajax({
             type: "post",
             dataType: "json",
@@ -174,7 +181,7 @@ $(document).ready(function () {
         numberEcheancesTotal = data.numberEcheancesTotal;
         numberEcheancesMini = data.numberEcheancesMini;
         numberEcheancesMax = data.numberEcheancesMax;
-        accompte = data.accompte;
+        accompte = formatNumber(data.accompte);
         accompteMini = data.accompteMini;
         valid = data.valid;
         profil = data.profil;

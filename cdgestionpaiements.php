@@ -88,7 +88,7 @@ class Cdgestionpaiements extends Module
                 `id_order_gestion_payment` INT NOT NULL AUTO_INCREMENT ,
                 `id_order` INT NOT NULL ,
                 `number_echeance` INT NOT NULL DEFAULT '0',
-                `accompte` INT NOT NULL DEFAULT '0',
+                `accompte` BIGINT NOT NULL DEFAULT '0',
                 PRIMARY KEY (`id_order_gestion_payment`)) 
                 ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
         if (!Db::getInstance()->execute($sql)) {
@@ -105,7 +105,7 @@ class Cdgestionpaiements extends Module
                  `payment_date` DATE NOT NULL DEFAULT '0000-00-00' ,
                  `payment_method` VARCHAR(255) NOT NULL ,
                  `payment_transaction_id` INT NOT NULL DEFAULT '0' ,
-                 `payment_amount` INT NOT NULL DEFAULT '0' ,
+                 `payment_amount` BIGINT NOT NULL DEFAULT '0' ,
                  `payed` TINYINT NOT NULL DEFAULT '0' ,
                  `id_employee` INT NOT NULL DEFAULT '0' ,
                  PRIMARY KEY (`id_order_gestion_echeancier`)) 

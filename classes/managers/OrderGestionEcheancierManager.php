@@ -29,7 +29,7 @@ class OrderGestionEcheancierManager
         $order = new Order($id_order);
         $payments = $order->getOrderPayments();
         $paymentsNumber = count($payments);
-        $resteAPayer = $order->total_paid_tax_incl - $order->total_paid_real;
+        $resteAPayer = ($order->total_paid_tax_incl - $order->total_paid_real);
 
         if ($gestionPayment->accompte > 0 && $paymentsNumber == 0) {
             $montantEcheances = $this->calculMontantEcheancesWithAccompte($gestionPayment, $resteAPayer, $order->total_paid_tax_incl);
@@ -49,6 +49,7 @@ class OrderGestionEcheancierManager
         $montantEcheance = $resteAPayer / $number_echeance;
 
         $echeanceMini = round(($total_paid_tax_incl * AdminGestionPaiementsController::CDGESTION_ACCOMPTE_POURCENTAGE_MINI), 2);
+
         if ($montantEcheance > $echeanceMini && $montantEcheance > AdminGestionPaiementsController::CDGESTION_ACCOMPTE_MINI) {
             $echeances = array_fill(0, $number_echeance - 1, round($montantEcheance, 2));
             array_unshift($echeances, ($resteAPayer - (array_sum($echeances))));
@@ -61,9 +62,9 @@ class OrderGestionEcheancierManager
 
     private function calculMontantEcheancesWithAccompte(OrderGestionPayment $gestionPayment, $resteAPayer, $total_paid_tax_incl)
     {
-        $resteAPayerMoinsAccompte = $resteAPayer - $gestionPayment->accompte;
+        $resteAPayerMoinsAccompte = $resteAPayer - ($gestionPayment->accompte / 100);
         $echeances = $this->calculMontantEcheances($resteAPayerMoinsAccompte, $gestionPayment->number_echeance, $total_paid_tax_incl);
-        array_unshift($echeances, (float)$gestionPayment->accompte);
+        array_unshift($echeances, $gestionPayment->accompte);
 
         return $echeances;
     }
@@ -85,7 +86,7 @@ class OrderGestionEcheancierManager
             $echeance = new OrderGestionEcheancier();
             $echeance->id_order_gestion_payment = $gestionPayment->id_order_gestion_payment;
             $echeance->payment_date = date('Y-m-d', strtotime("+".$dateEcheance." month"));
-            $echeance->payment_amount = $montantEcheance * 100;
+            $echeance->payment_amount = $montantEcheance;
             $echeance->add();
             $dateEcheance++;
         }

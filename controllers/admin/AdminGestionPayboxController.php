@@ -190,7 +190,7 @@ class AdminGestionPayboxController extends ModuleAdminController
     public function linkOrder($value, $params)
     {
         $linkController =  Context::getContext()->link->getAdminLink('AdminOrders');
-        $link = '<a href="'.$linkController.'&id_order='.$params['id_order'].'&vieworder" class="btn btn-primary"><i class="icon-eye"></i>&nbsp;Voir</a>';
+        $link = '<a href="'.$linkController.'&id_order='.$params['id_order'].'&vieworder" class="btn btn-primary" target="_blank"><i class="icon-eye"></i>&nbsp;Voir</a>';
         return $link;
     }
 
@@ -226,7 +226,7 @@ class AdminGestionPayboxController extends ModuleAdminController
             } else {
                 $id_order = $payment['id_order'];
                 $echeances = OrderGestionEcheancier::getAllEcheancesAVenirByIdOrder($id_order);
-                if (count($echeances) > 0) {
+                if (count($echeances) > 0 && $echeances->payed == 0) {
                     foreach ($echeances as $echeance) {
                         $pay_status = $this->setPaymentStatus((int)$payment['amount'], (int)$echeance['payment_amount']);
                         $checked = ($pay_status == 'pay_ok') ? 'checked' : '';
@@ -334,12 +334,14 @@ class AdminGestionPayboxController extends ModuleAdminController
     private function setPayment(OrderGestionPaymentPayboxClass $paymentPaybox)
     {
         $payment['id_order_payment'] = null;
+        $heure = date(' H:i:s');
+
         $orderEcheancier = new OrderGestionEcheancier($paymentPaybox->id_order_gestion_echeancier);
         $commande = new Order($paymentPaybox->id_order);
         $invoice = new OrderInvoice($this->getInvoiceId($commande->invoice_number));
         $setPayment = $commande->addOrderPayment(
-            $paymentPaybox->amount / 100, "Carte Bancaire", $paymentPaybox->transaction_id, null,
-            $paymentPaybox->date_of_issue . ' 00:00:00', $invoice);
+            $paymentPaybox->amount, "Carte Bancaire", $paymentPaybox->transaction_id, null,
+            $paymentPaybox->date_of_issue . date(' H:i:s'), $invoice);
         if ($setPayment) {
             $payment = $this->getByOrderIdTransaction($paymentPaybox->transaction_id);
             $orderEcheancier->payment_transaction_id = $payment['id_order_payment'];
@@ -373,7 +375,7 @@ class AdminGestionPayboxController extends ModuleAdminController
 
     public function setAmount($value)
     {
-        return number_format(($value / 100), 2) . ' €';
+        return number_format(($value), 2) . ' €';
     }
 
     public function ajaxProcessUploadCsv()
@@ -540,6 +542,6 @@ class AdminGestionPayboxController extends ModuleAdminController
 
     public function formatDateField($value)
     {
-        return date('d-m-Y', strtotime($value));
+        return date('d-m-Y H:i', strtotime($value));
     }
 }
