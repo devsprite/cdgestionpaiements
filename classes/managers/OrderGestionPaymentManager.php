@@ -18,10 +18,10 @@ class OrderGestionPaymentManager
         if (null === $orderGestionPayment->id_order) {
             $orderGestionPayment = new OrderGestionPayment();
             $orderGestionPayment->id_order = (int)$id_order;
-            $orderGestionPayment->accompte = (int)($accompte);
+            $orderGestionPayment->accompte = $accompte;
             $isOk = $orderGestionPayment->add();
         } else {
-            $orderGestionPayment->accompte = (int)($accompte);
+            $orderGestionPayment->accompte = $accompte;
             $isOk = $orderGestionPayment->update();
         }
 
@@ -112,7 +112,14 @@ class OrderGestionPaymentManager
             return $echeancesMini;
         }
 
-        return $echeancesMini + 10;
+        $nbr = 10;
+        $id_profil = $this->context->employee->id_profile;
+
+        if($id_profil == 4) {
+            $nbr = 4;
+        }
+
+        return $echeancesMini + $nbr;
     }
 
     public function getEcheancier($order)
@@ -155,7 +162,7 @@ class OrderGestionPaymentManager
             $echeance['paymentMethod'] = $echeanceAVenir['payment_method'];
             $echeance['paymentTransactionId'] = $echeance['paiementPaybox']['transaction_id'];
             $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
-            $echeance['paymentAmount'] = number_format((($echeanceAVenir['payment_amount']/100) ), 2);
+            $echeance['paymentAmount'] = number_format($echeanceAVenir['payment_amount'], 2);
             $echeance['invoices'] = $this->paymentInvoices($echeanceAVenir['id_order']);
             $echeance['disabled'] = $this->disabled($order, $echeanceAVenir);
             $echeance['delete'] = $this->delete($order, $echeanceAVenir);
@@ -197,6 +204,7 @@ class OrderGestionPaymentManager
     {
         $payment = array();
         $id_order = OrderGestionEcheancier::getIdOrderByIdEcheancier($echeance['idEcheancier']);
+
         $paymentPaybox = OrderGestionPaymentPayboxClass::getEcheance($id_order, $echeance['paymentDate']);
         if ($paymentPaybox) {
             $payment['id_order_gestion_payment_paybox'] = $paymentPaybox['id_order_gestion_payment_paybox'];
@@ -257,6 +265,80 @@ class OrderGestionPaymentManager
         }
 
         return $return;
+    }
+
+    public function updateEcheances(OrderGestionPayment $orderGestion)
+    {
+        $this->updateEcheance($orderGestion->id_order, $orderGestion->number_echeance - 1);
+        $echeances = $this::getNumberEcheancesTotalByOrder($orderGestion->id_order);
+        if ($echeances > 0) {
+            $accompte = $orderGestion->accompte;
+            $order = new Order($orderGestion->id_order);
+            $resteAPayer = $order->total_paid_tax_incl - $order->total_paid_real;
+            if ($accompte > 0) {
+                // calcule echances avec accompte
+                $echeancierManager = new OrderGestionEcheancierManager();
+                $echeancierAVenir = $echeancierManager->getEcheancierAVenir($orderGestion->id_order);
+                $nbrEcheance = count($echeancierAVenir);
+                $nbrEcheance--;
+                $resteAPayer = $resteAPayer - $accompte;
+                $montant = $this->calculMontantEcheances($resteAPayer, $nbrEcheance);
+                foreach ($echeancierAVenir as $key => $echeancier) {
+                    if ($accompte !== false) {
+                        $this->updateEcheancier($accompte, $echeancier['id_order_gestion_echeancier']);
+                        $accompte = false;
+                    } else {
+                        $this->updateEcheancier($montant[$key-1], $echeancier['id_order_gestion_echeancier']);
+                    }
+                }
+            } else {
+                $echeancierManager = new OrderGestionEcheancierManager();
+                $echeancierAVenir = $echeancierManager->getEcheancierAVenir($orderGestion->id_order);
+                $nbrEcheance = count($echeancierAVenir);
+                $montant = $this->calculMontantEcheances($resteAPayer, $nbrEcheance);
+                foreach ($echeancierAVenir as $key => $echeancier) {
+                    $this->updateEcheancier($montant[$key], $echeancier['id_order_gestion_echeancier']);
+                }
+            }
+        }
+    }
+
+    private function calculMontantEcheances($resteAPayer, $number_echeance)
+    {
+        $echeances = array();
+        $montantEcheance = $resteAPayer / $number_echeance;
+        $echeances = array_fill(0, $number_echeance - 1, round($montantEcheance, 2));
+        array_unshift($echeances, ($resteAPayer - (array_sum($echeances))));
+
+        return $echeances;
+    }
+
+    public function updateEcheancier($montant, $id_echeancier) {
+    $sql = "UPDATE `"._DB_PREFIX_."order_gestion_echeancier` 
+                            SET payment_amount = ".$montant."
+                            WHERE 
+                            id_order_gestion_echeancier =".$id_echeancier;
+    $req = DB::getInstance()->execute($sql);
+    }
+
+    public function deleteEcheancier($id_order)
+    {
+        $orderGestion = $this->getEcheancierByIdOrder($id_order);
+        $this->deleteEcheances($orderGestion->id_order_gestion_payment);
+        $orderGestion->delete();
+    }
+
+    private function getEcheancierByIdOrder($id_order)
+    {
+        $sql = "SELECT id_order_gestion_payment FROM `"._DB_PREFIX_."order_gestion_payment` WHERE id_order = " . (int)$id_order;
+        $id = DB::getInstance()->getValue($sql);
+        return new OrderGestionPayment($id);
+    }
+
+    private function deleteEcheances($id_order_gestion_payment)
+    {
+        $sql = "DELETE FROM `"._DB_PREFIX_."order_gestion_echeancier` WHERE id_order_gestion_payment = " . (int)$id_order_gestion_payment;
+        $req = DB::getInstance()->execute($sql);
     }
 
 }

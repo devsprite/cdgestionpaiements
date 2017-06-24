@@ -18,6 +18,7 @@ $(document).ready(function () {
     var edit = 0;
     var valid = 0;
     var profil;
+    var btnOrderInformation = '';
     var echeancier = {echeancier:[]};
     var linkOrderInformations = '';
     var linkUpdateAccompte = '';
@@ -54,6 +55,7 @@ $(document).ready(function () {
             updateNombreEcheance();
         }
     });
+
     getProfil();
 
     function getProfil() {
@@ -86,7 +88,6 @@ $(document).ready(function () {
                 number_echeance: numberEcheancesTotal
             },
             success: function (data) {
-                console.log(data);
                 loader.hide();
                 pErrors.text(data.message);
                 divErrors.toggle(data.error);
@@ -105,7 +106,6 @@ $(document).ready(function () {
 
     $('#accompte').change(function (evt) {
         accompte = formatNumber(evt.target.value);
-        console.log(orders_total_paid_tax_incl);
         dixPourcentTotal = formatNumber(orders_total_paid_tax_incl * 0.1);
 
         if(accompteMini < dixPourcentTotal) {
@@ -124,7 +124,7 @@ $(document).ready(function () {
 
     function updateAccompte() {
         loader.show();
-        accompte = accompte * 100;
+        accompte = accompte;
         $.ajax({
             type: "post",
             dataType: "json",
@@ -186,9 +186,20 @@ $(document).ready(function () {
         valid = data.valid;
         profil = data.profil;
         echeancier = {echeancier:data.echeancier};
+        btnOrderInformation = setBtnOrderInformation(data.validEcheancier);
 
         updateDisplay();
     }
+
+    function setBtnOrderInformation(status) {
+        $('#getOrderInformation').removeClass().addClass('btn btn-' + status);
+        if(status == 'danger' && numberEcheancesTotal != 0) {
+            $('#cdgestion').addClass('alert_gestion');
+        }else{
+            $('#cdgestion').removeClass();
+        }
+    }
+
 
     function updateEcheancier() {
         getOrderInformations();

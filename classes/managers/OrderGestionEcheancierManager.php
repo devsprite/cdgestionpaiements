@@ -36,11 +36,10 @@ class OrderGestionEcheancierManager
         } else {
             $montantEcheances = $this->calculMontantEcheances($resteAPayer, $gestionPayment->number_echeance, $order->total_paid_tax_incl);
         }
-
         $this->deleteEcheances($gestionPayment);
         $this->insertNewEcheances($gestionPayment, $montantEcheances);
 
-        return true; // Todo personnaliser le message de retour
+        return true;
     }
 
     private function calculMontantEcheances($resteAPayer, $number_echeance, $total_paid_tax_incl)
@@ -62,8 +61,8 @@ class OrderGestionEcheancierManager
 
     private function calculMontantEcheancesWithAccompte(OrderGestionPayment $gestionPayment, $resteAPayer, $total_paid_tax_incl)
     {
-        $resteAPayerMoinsAccompte = $resteAPayer - ($gestionPayment->accompte / 100);
-        $echeances = $this->calculMontantEcheances($resteAPayerMoinsAccompte, $gestionPayment->number_echeance, $total_paid_tax_incl);
+        $resteAPayerMoinsAccompte = $resteAPayer - ($gestionPayment->accompte);
+        $echeances = $this->calculMontantEcheances($resteAPayerMoinsAccompte, $gestionPayment->number_echeance - 1, $total_paid_tax_incl);
         array_unshift($echeances, $gestionPayment->accompte);
 
         return $echeances;
@@ -90,5 +89,16 @@ class OrderGestionEcheancierManager
             $echeance->add();
             $dateEcheance++;
         }
+    }
+
+    public function getSommeEcheance(Order $order)
+    {
+        $sql = "SELECT SUM(payment_amount) FROM `"._DB_PREFIX_."order_gestion_echeancier` AS oge
+                LEFT JOIN `"._DB_PREFIX_."order_gestion_payment` AS ogp ON ogp.id_order_gestion_payment = oge.id_order_gestion_payment
+                WHERE ogp.id_order = " . (int)$order->id;
+
+        $req = DB::getInstance()->getValue($sql);
+
+        return $req;
     }
 }

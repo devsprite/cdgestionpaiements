@@ -34,3 +34,6 @@
     width: 100%!important;
     margin-left: 0!important;
 }
+.alert_gestion {
+    background-color: rgba(217, 83, 79, 0.4)!important;
+}

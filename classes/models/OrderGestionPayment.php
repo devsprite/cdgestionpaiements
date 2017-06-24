@@ -47,6 +47,4 @@ class OrderGestionPayment extends ObjectModel
 
         return new OrderGestionPayment($req);
     }
-
-
 }

@@ -320,7 +320,7 @@ $.fn.ajaxSubmit = function(options) {
                         var position = event.loaded || event.position; /*event.position is deprecated*/
                         var total = event.total;
                         if (event.lengthComputable) {
-                            percent = Math.ceil(position / total * 100);
+                            percent = Math.ceil(position / total);
                         }
                         options.uploadProgress(event, position, total, percent);
                     }, false);
