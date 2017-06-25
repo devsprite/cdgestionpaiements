@@ -112,14 +112,14 @@ $(document).ready(function () {
             accompteMini = dixPourcentTotal;
         }
         updateAccompte();
-        // if (accompte == "0.00") {
-        //     updateAccompte();
-        // } else if ((accompte > order_reste_a_payer) || (accompte < accompteMini)) {
-        //     pErrors.text("l'accompte doit être compris entre " + accompteMini + " € et " + order_reste_a_payer + " €");
-        //     divErrors.show();
-        // } else {
-        //     updateAccompte();
-        // }
+        if (accompte == "0.00") {
+            updateAccompte();
+        } else if ((accompte > order_reste_a_payer) || (accompte < accompteMini)) {
+            pErrors.text("l'accompte doit être compris entre " + accompteMini + " € et " + order_reste_a_payer + " €");
+            divErrors.show();
+        } else {
+            updateAccompte();
+        }
     });
 
     function updateAccompte() {
