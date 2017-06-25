@@ -516,7 +516,7 @@ class AdminGestionPayboxController extends ModuleAdminController
                 $orderPaybox->transaction_id = (int)$row[7];
                 $orderPaybox->date_of_issue = $this->formatDate($row[9]);
                 $orderPaybox->reference = $row[12];
-                $orderPaybox->amount = floatval($row[17]);
+                $orderPaybox->amount = floatval(($row[17] / 100));
                 $orderPaybox->status = utf8_encode($row[28]);
 
                 if ($id_order_gestion_payment_paybox) {
