@@ -152,21 +152,25 @@ class OrderGestionPaymentManager
             'paiementPaybox' => array(),
             'disabled' => 'disabled',
             'delete' => 'false',
-            'valider' => 'false'
+            'valider' => 'false',
+            'accomptePayed' => false
         );
-        foreach ($echeancierAVenir as $echeanceAVenir) {
+
+        foreach ($echeancierAVenir as $key => $echeanceAVenir) {
             $echeance['idEcheancier'] = $echeanceAVenir['id_order_gestion_echeancier'];
             $echeance['paymentDate'] = $echeanceAVenir['payment_date'];
             $echeance['paiementPaybox'] = $this->getPaymentPaybox($echeance);
             $echeance['paymentMethods'] = AdminGestionPaiementsController::CDGESTION_PAYMENT_METHOD;
             $echeance['paymentMethod'] = $echeanceAVenir['payment_method'];
             $echeance['paymentTransactionId'] = $echeance['paiementPaybox']['transaction_id'];
-            $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
             $echeance['paymentAmount'] = number_format($echeanceAVenir['payment_amount'], 2);
+            $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
+            $echeance['accomptePayed'] = ($key == 0 && $echeance['checked'] == false) ? true : false;
             $echeance['invoices'] = $this->paymentInvoices($echeanceAVenir['id_order']);
             $echeance['disabled'] = $this->disabled($order, $echeanceAVenir);
             $echeance['delete'] = $this->delete($order, $echeanceAVenir);
-            $echeance['valider'] = $this->valider($order, $echeanceAVenir);
+            $echeance['valider'] = $this->valider($order, $echeanceAVenir, $echeance);
+
 
             $echeanceTmp = new OrderGestionEcheancier($echeance['idEcheancier']);
             $echeanceTmp->payment_transaction_id = $echeance['paymentTransactionId'];
@@ -245,24 +249,29 @@ class OrderGestionPaymentManager
         return true;
     }
 
-    private function valider($order, $echeance)
+    private function valider($order, $echeanceAvenir, $echeance)
     {
         $return = false;
         $order_ = new Order($order['id_order']);
         $valid = $order_->valid;
         if ((($order['profil']['add'] == 0 ||
             ($order['profil']['add'] == 1 && $valid == 0)) && $order['profil']['id_profile'] != 1)||
-            $echeance['payed'] == 1
-        ) {
+            $echeanceAvenir['payed'] == 1) {
             $return = false;
-        } else {
-            $echeancePaybox = OrderGestionPaymentPayboxClass::getEcheance($order['id_order'], $echeance['payment_date']);
+        }else{
+            $echeancePaybox = OrderGestionPaymentPayboxClass::getEcheance($order['id_order'], $echeanceAvenir['payment_date']);
             if($echeancePaybox !== false) {
-                if($echeancePaybox['amount'] === $echeance['payment_amount']) {
+                if($echeancePaybox['amount'] === $echeanceAvenir['payment_amount']) {
                     $return = true;
                 }
             }
+            if($echeance['accomptePayed'] == true) {
+                $return = true;
+            }
         }
+
+
+
 
         return $return;
     }

@@ -111,7 +111,7 @@ $(document).ready(function () {
         if(accompteMini < dixPourcentTotal) {
             accompteMini = dixPourcentTotal;
         }
-        updateAccompte();
+
         if (accompte == "0.00") {
             updateAccompte();
         } else if ((accompte > order_reste_a_payer) || (accompte < accompteMini)) {

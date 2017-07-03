@@ -95,7 +95,9 @@ class OrderGestionEcheancierManager
     {
         $sql = "SELECT SUM(payment_amount) FROM `"._DB_PREFIX_."order_gestion_echeancier` AS oge
                 LEFT JOIN `"._DB_PREFIX_."order_gestion_payment` AS ogp ON ogp.id_order_gestion_payment = oge.id_order_gestion_payment
-                WHERE ogp.id_order = " . (int)$order->id;
+                WHERE ogp.id_order = " . (int)$order->id . "
+                AND payed = '0'
+                ";
 
         $req = DB::getInstance()->getValue($sql);
 

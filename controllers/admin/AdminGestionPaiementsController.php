@@ -150,7 +150,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
         $numberEcheanceMini = $orderGestionPaymentManager->getNumberEcheancesMini($id_order);
 
-        if ($number_echeance < $numberEcheanceMini) {
+        if ($number_echeance <= $numberEcheanceMini) {
             die(Tools::jsonEncode(array("message" => "Nombre d'échéances mini : " . $numberEcheanceMini, "error" => true)));
         }
 

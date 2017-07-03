@@ -67,6 +67,7 @@ class OrderGestionEcheancier extends ObjectModel
                 ORDER BY ogpe.payment_date ASC";
 
         $req = Db::getInstance()->executeS($sql);
+
         return $req;
     }
 

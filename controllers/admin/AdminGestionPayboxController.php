@@ -42,7 +42,7 @@ class AdminGestionPayboxController extends ModuleAdminController
     protected $path_tpl;
     protected $original_filter;
     protected $headerCsv = "RemittancePaybox;Bank;Site;Rank;ShopName;IdPaybox;Date;TransactionId;IdAppel;DateOfIssue;HourOfIssue";
-    private $idOrder = 47343;
+    private $idOrder = 57857;
 
     public function __construct()
     {
@@ -536,7 +536,6 @@ class AdminGestionPayboxController extends ModuleAdminController
         $day = $arrayDate[0];
         $month = $arrayDate[1];
         $year = $arrayDate[2];
-
         return $year . '-' . $month . '-' . $day;
     }
 

@@ -3,7 +3,7 @@ var templatePayment = '' +
     '<table class="table">' +
     '<thead>' +
     '   <tr>' +
-    '       <th><span class="title_box ">Date</span></th>' +
+    '       <th><p class="text-danger">Attention deux échéances ne peuvent</p><p class="text-danger">avoir plus de 45 jours d\'écart.</p><span class="title_box ">Date</span></th>' +
     '       <th><span class="title_box ">Méthode de paiement</span></th>' +
     '       <th><span class="title_box ">ID de la transaction</span></th>' +
     '       <th><span class="title_box ">Montant</span></th>' +
