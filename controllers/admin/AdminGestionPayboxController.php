@@ -42,7 +42,7 @@ class AdminGestionPayboxController extends ModuleAdminController
     protected $path_tpl;
     protected $original_filter;
     protected $headerCsv = "RemittancePaybox;Bank;Site;Rank;ShopName;IdPaybox;Date;TransactionId;IdAppel;DateOfIssue;HourOfIssue";
-    private $idOrder = 57857;
+    private $idOrder = 47343;
 
     public function __construct()
     {
