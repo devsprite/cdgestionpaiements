@@ -35,7 +35,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
 {
     const CDGESTION_ACCOMPTE_MINI = 20;
     const CDGESTION_ACCOMPTE_POURCENTAGE_MINI = 0.1;
-    const CDGESTION_NUMBER_ECHEANCE_DEFAULT = 0;
+    const CDGESTION_NUMBER_ECHEANCE_DEFAULT = 4;
     const CDGESTION_PAYMENT_METHOD = array(
         array('paymentMethod' => 'Carte Bancaire'),
         array('paymentMethod' => 'Chèque'),
@@ -68,6 +68,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
         $orderGestionEcheancierManager = new OrderGestionEcheancierManager();
 
         $this->orderInformations['id_customer'] = (int)$order->id_customer;
+        $this->orderInformations['id_echeancier'] = OrderGestionPayment::getOrderGestionPaymentByIdOrder($this->orderInformations['id_order']);
         $this->orderInformations['profil'] = $this->getProfile();
         $this->orderInformations['valid'] = $order->valid;
         $this->orderInformations['total_paid_real'] = round($order->total_paid_real, 2);
@@ -224,6 +225,7 @@ class AdminGestionPaiementsController extends ModuleAdminController
                 case "Valider":
                     $messageRetour['message'] = "Echéance Validé";
                     $orderEcheancier->ValiderEcheance($inputValues);
+                    $messageRetour['message'] = "deleted";
                     break;
                 default:
                     $messageRetour['message'] = "Il n'y a pas de valeur correspondante.";
@@ -278,10 +280,8 @@ class AdminGestionPaiementsController extends ModuleAdminController
 
         $totalResteAPayer = $this->getResteAPayer($order);
         $totalEcheancier = $gestionEcheancier->getSommeEcheance($order);
+        $result = $totalEcheancier - $totalResteAPayer;
 
-        if ($totalEcheancier == $totalResteAPayer) {
-            return 'success';
-        }
-        return 'danger';
+        return round($result,3);
     }
 }

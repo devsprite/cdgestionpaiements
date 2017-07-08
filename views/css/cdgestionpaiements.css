@@ -16,6 +16,10 @@
     margin-bottom:0px;
 }
 
+.payed {
+    background-color: #00bb14!important;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);

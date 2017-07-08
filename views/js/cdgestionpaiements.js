@@ -45,7 +45,7 @@ $(document).ready(function () {
         getOrderInformations();
     });
 
-    // Update nombre d'echeance //
+    // Update input nombre d'echeance //
     $('#nombreEcheances').change(function (evt) {
         numberEcheancesTotal = parseInt(evt.target.value);
         if (numberEcheancesTotal < numberEcheancesMini) {
@@ -124,7 +124,6 @@ $(document).ready(function () {
 
     function updateAccompte() {
         loader.show();
-        accompte = accompte;
         $.ajax({
             type: "post",
             dataType: "json",
@@ -164,6 +163,9 @@ $(document).ready(function () {
             success: function (data) {
                 updateVariables(data);
                 console.log(data);
+                if(data.id_echeancier.id == null) {
+                    updateAccompte();
+                }
                 loader.hide();
             },
             error: function () {
@@ -192,10 +194,12 @@ $(document).ready(function () {
     }
 
     function setBtnOrderInformation(status) {
-        $('#getOrderInformation').removeClass().addClass('btn btn-' + status);
-        if(status == 'danger' && numberEcheancesTotal != 0) {
+        $('#ecart').text(status + ' €');
+        if(status !== 0 && numberEcheancesTotal != 0) {
+            $('#getOrderInformation').removeClass().addClass('btn btn-danger');
             $('#cdgestion').addClass('alert_gestion');
         }else{
+            $('#getOrderInformation').removeClass().addClass('btn btn-success');
             $('#cdgestion').removeClass();
         }
     }
@@ -243,7 +247,6 @@ $(document).ready(function () {
             'data-transaction-id' : $(evt.target).data("transaction-id"),
             'input_value': evt.target.value
         };
-        console.log(inputEcheanceValues);
         updateInputEcheance(inputEcheanceValues);
     }
 
@@ -267,8 +270,10 @@ $(document).ready(function () {
             dataType: "json",
             data: {inputValues: inputEcheanceValues},
             success: function(data){
+                if(data.message == 'deleted') {
+                    location.reload();
+                }
                 getOrderInformations();
-                console.log(data);
             },
             error: function(data){
                 console.log("Error updateInputEcheance");

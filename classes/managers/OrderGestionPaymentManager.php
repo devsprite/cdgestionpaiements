@@ -61,7 +61,7 @@ class OrderGestionPaymentManager
     public function getNumberEcheancesTotalByOrder($id_order)
     {
         $order = OrderGestionPayment::getOrderGestionPaymentByIdOrder((int)$id_order);
-
+        // Changer ici pour le nombre d'echeance du select si prmiere fois
         if (null === $order) {
             return 4;
         }
@@ -111,7 +111,7 @@ class OrderGestionPaymentManager
         if ($needToPaid <= 0) {
             return $echeancesMini;
         }
-
+        // Changer ici pour le nombre d'echeances du select
         $nbr = 10;
         $id_profil = $this->context->employee->id_profile;
 
@@ -167,6 +167,7 @@ class OrderGestionPaymentManager
             $echeance['checked'] = $this->paymentIsChecked($echeanceAVenir['id_order_gestion_echeancier']);
             $echeance['accomptePayed'] = ($key == 0 && $echeance['checked'] == false) ? true : false;
             $echeance['invoices'] = $this->paymentInvoices($echeanceAVenir['id_order']);
+            $echeance['payed'] = ($echeanceAVenir['payed'] == 1) ? "payed" : "";
             $echeance['disabled'] = $this->disabled($order, $echeanceAVenir);
             $echeance['delete'] = $this->delete($order, $echeanceAVenir);
             $echeance['valider'] = $this->valider($order, $echeanceAVenir, $echeance);
@@ -226,7 +227,7 @@ class OrderGestionPaymentManager
         $order_ = new Order($order['id_order']);
         $valid = $order_->valid;
         if (($order['profil']['edit'] == 0 ||
-            ($order['profil']['edit'] == 0 && $valid == 1)) ||
+            ($order['profil']['edit'] == 1 && $valid == 1)) ||
             $echeance['payed'] == 1
         ) {
             return 'disabled';
@@ -240,8 +241,7 @@ class OrderGestionPaymentManager
         $order_ = new Order($order['id_order']);
         $valid = $order_->valid;
         if ((($order['profil']['delete'] == 0 ||
-            ($order['profil']['delete'] == 1 && $valid == 0)) &&
-            $order['profil']['id_profile'] != 1 ||
+            ($order['profil']['delete'] == 1 && $valid == 1)) && $order['profil']['id_profile'] != 1 ||
             $echeance['payed'] == 1)
         ) {
             return false;
@@ -269,9 +269,9 @@ class OrderGestionPaymentManager
                 $return = true;
             }
         }
-
-
-
+        if($order['profil']['id_profile'] == 1 && $echeanceAvenir['payed'] == 0) {
+            $return = true;
+        }
 
         return $return;
     }
