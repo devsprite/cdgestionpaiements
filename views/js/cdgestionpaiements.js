@@ -89,10 +89,10 @@ $(document).ready(function () {
             },
             success: function (data) {
                 loader.hide();
-                pErrors.text(data.message);
-                divErrors.toggle(data.error);
                 if (data.error == false) {
                     getOrderInformations();
+                } else {
+                    $("#cdgestionEcheancier").html('');
                 }
             },
             error: function (data) {

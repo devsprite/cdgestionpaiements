@@ -89,7 +89,7 @@ class Cdgestionpaiements extends Module
                 `id_order` INT NOT NULL ,
                 `number_echeance` INT NOT NULL DEFAULT '0',
                 `accompte` DECIMAL(20,6) NOT NULL DEFAULT '0.000000',
-                PRIMARY KEY (`id_order_gestion_payment`)) 
+                PRIMARY KEY (`id_order_gestion_payment`))
                 ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
         if (!Db::getInstance()->execute($sql)) {
             return false;
@@ -108,7 +108,7 @@ class Cdgestionpaiements extends Module
                  `payment_amount` DECIMAL (20,6) NOT NULL DEFAULT '0.000000' ,
                  `payed` TINYINT NOT NULL DEFAULT '0' ,
                  `id_employee` INT NOT NULL DEFAULT '0' ,
-                 PRIMARY KEY (`id_order_gestion_echeancier`)) 
+                 PRIMARY KEY (`id_order_gestion_echeancier`))
                  ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
         if (!Db::getInstance()->execute($sql)) {
             return false;
@@ -130,7 +130,7 @@ class Cdgestionpaiements extends Module
                 `amount` DECIMAL(20,6) NOT NULL DEFAULT '0.000000' ,
                 `status` VARCHAR(255) NOT NULL DEFAULT '' ,
                 `checked` TINYINT NOT NULL DEFAULT '0' ,
-                PRIMARY KEY (`id_order_gestion_payment_paybox`)) 
+                PRIMARY KEY (`id_order_gestion_payment_paybox`))
                 ENGINE = '" . _MYSQL_ENGINE_ . "' DEFAULT CHARSET=utf8;";
         if (!Db::getInstance()->execute($sql)) {
             return false;
@@ -222,6 +222,9 @@ class Cdgestionpaiements extends Module
     {
         $idOrder = Tools::getValue('id_order');
         $echeances = OrderGestionEcheancier::getAllEcheancesByIdOrder($idOrder);
+        if($echeances[0]['payment_amount'] === null) {
+            $echeances = null;
+        }
         $context = Context::getContext();
         $context->smarty->assign(array('echeances' => $echeances));
     }

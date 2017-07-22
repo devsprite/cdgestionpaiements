@@ -56,10 +56,10 @@ class AdminGestionPayboxController extends ModuleAdminController
             'Update' => array(
                 'text' => $this->l('Valider les paiements Paybox'),
                 'icon' => 'icon-refresh'),
-            'Reset' => array(
-                'text' => 'Reset order '.$this->idOrder.' pour test module paiement',
-                'icon' => 'icon-eye'
-            )
+            // 'Reset' => array(
+            //     'text' => 'Reset order '.$this->idOrder.' pour test module paiement',
+            //     'icon' => 'icon-eye'
+            // )
         );
 
         $this->bootstrap = true;

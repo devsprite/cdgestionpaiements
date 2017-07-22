@@ -133,15 +133,15 @@ class AdminGestionPaiementsController extends ModuleAdminController
     public function ajaxProcessUpdateEcheance()
     {
         $id_order = (int)Tools::getValue("id_order");
-        $number_echeance = $this->nombreEcheance((int)Tools::getValue("number_echeance"));
+        $number_echeance = (int)Tools::getValue("number_echeance");
 
         if($number_echeance === 0) {
             $orderGestionPaymentManager = new OrderGestionPaymentManager();
             $orderGestionPaymentManager->deleteEcheancier($id_order);
-            die(Tools::jsonEncode(array("message" => "", "error" => false)));
+            die(Tools::jsonEncode(array("message" => "Deleted", "error" => true)));
         }
 
-
+        $number_echeance = $this->nombreEcheance($number_echeance);
         $order = new Order((int)$id_order);
         if (null === $order) {
             die(Tools::jsonEncode(array("message" => "La commande n'existe pas", "error" => true)));
