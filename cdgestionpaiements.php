@@ -39,7 +39,7 @@ class Cdgestionpaiements extends Module
     {
         $this->name = 'cdgestionpaiements';
         $this->tab = 'billing_invoicing';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'Dominique';
         $this->need_instance = 0;
 

@@ -226,9 +226,9 @@ class OrderGestionPaymentManager
     {
         $order_ = new Order($order['id_order']);
         $valid = $order_->valid;
-        if (($order['profil']['edit'] == 0 ||
+        if ( $order['profil']['id_profile'] != 1 && (($order['profil']['edit'] == 0 ||
             ($order['profil']['edit'] == 1 && $valid == 1)) ||
-            $echeance['payed'] == 1
+            $echeance['payed'] == 1)
         ) {
             return 'disabled';
         }
