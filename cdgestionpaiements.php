@@ -39,7 +39,7 @@ class Cdgestionpaiements extends Module
     {
         $this->name = 'cdgestionpaiements';
         $this->tab = 'billing_invoicing';
-        $this->version = '1.0.1';
+        $this->version = '1.0.2';
         $this->author = 'Dominique';
         $this->need_instance = 0;
 
@@ -221,10 +221,17 @@ class Cdgestionpaiements extends Module
     public function hookActionPDFInvoiceRender()
     {
         $idOrder = Tools::getValue('id_order');
+        if (empty($idOrder)) {
+            $idOrderInvoice = Tools::getValue('id_order_invoice');
+            $invoice = new OrderInvoice($idOrderInvoice);
+            $idOrder = $invoice->id_order;
+        }
+
         $echeances = OrderGestionEcheancier::getAllEcheancesByIdOrder($idOrder);
         if($echeances[0]['payment_amount'] === null) {
             $echeances = null;
         }
+
         $context = Context::getContext();
         $context->smarty->assign(array('echeances' => $echeances));
     }
