@@ -44,7 +44,7 @@ class OrderGestionPaymentPayboxClass extends ObjectModel
         $sql = "SELECT *
                 FROM `" . _DB_PREFIX_ . "order_gestion_payment_paybox`
                 WHERE id_order = " . $id_order . "
-                AND status = 'Télécollecté' 
+                AND status in ('Dispo pour télécollecte', 'Télécollecté')
                 AND checked = 0
                 ";
 

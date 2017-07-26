@@ -226,7 +226,7 @@ class OrderGestionPaymentManager
     {
         $order_ = new Order($order['id_order']);
         $valid = $order_->valid;
-        if ( $order['profil']['id_profile'] != 1 && (($order['profil']['edit'] == 0 ||
+        if ( ($order['profil']['id_profile'] != 1 && $order['profil']['id_profile'] != 2 ) && (($order['profil']['edit'] == 0 ||
             ($order['profil']['edit'] == 1 && $valid == 1)) ||
             $echeance['payed'] == 1)
         ) {
@@ -323,9 +323,9 @@ class OrderGestionPaymentManager
     }
 
     public function updateEcheancier($montant, $id_echeancier) {
-    $sql = "UPDATE `"._DB_PREFIX_."order_gestion_echeancier` 
+    $sql = "UPDATE `"._DB_PREFIX_."order_gestion_echeancier`
                             SET payment_amount = ".$montant."
-                            WHERE 
+                            WHERE
                             id_order_gestion_echeancier =".$id_echeancier;
     $req = DB::getInstance()->execute($sql);
     }

@@ -48,6 +48,7 @@ class AdminGestionPayboxController extends ModuleAdminController
     {
         $this->table = 'order_gestion_payment_paybox';
         $this->identifier = 'id_order_gestion_payment_paybox';
+        $this->className = 'OrderGestionPaymentPayboxClass';
         $this->_orderBy = 'a!date_of_issue';
         $this->_orderWay = 'DESC';
         $this->original_filter = '';
@@ -56,6 +57,10 @@ class AdminGestionPayboxController extends ModuleAdminController
             'Update' => array(
                 'text' => $this->l('Valider les paiements Paybox'),
                 'icon' => 'icon-refresh'),
+            'delete' => array(
+                'text' => $this->l('Delete selected'),
+                'icon' => 'icon-trash',
+                'confirm' => $this->l('Delete selected items?'))
             // 'Reset' => array(
             //     'text' => 'Reset order '.$this->idOrder.' pour test module paiement',
             //     'icon' => 'icon-eye'
@@ -200,7 +205,7 @@ class AdminGestionPayboxController extends ModuleAdminController
         $euro ='';
         $class_euro = 'text-danger';
         $class_calendar = 'text-danger';
-        if ($params['status'] == 'Télécollecté' && !empty($params['payment_date']) && !empty($params['payment_amount']))  {
+        if (($params['status'] == 'Télécollecté' || $params['status'] == 'Dispo pour télécollecte') && !empty($params['payment_date']) && !empty($params['payment_amount']))  {
             if (!empty($params['date_of_issue']) && !empty($params['payment_date'])) {
                 if ($params['date_of_issue'] === $params['payment_date']) {
                     $class_calendar = 'text-success';
@@ -220,7 +225,7 @@ class AdminGestionPayboxController extends ModuleAdminController
 
     public function getOrderGestionEcheancier($value, $payment)
     {
-        if ($payment['status'] == 'Télécollecté') {
+        if ($payment['status'] == 'Télécollecté' || $payment['status'] == 'Dispo pour télécollecte') {
             if ($payment['checked'] == 1) {
                 return "<i class='icon-check text-success'></i>";
             } else {
